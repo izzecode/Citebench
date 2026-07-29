@@ -96,7 +96,8 @@ export default function ProjectsPage() {
             Projects
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66736f]">
-            Track screening progress, open a queue, or start a new evidence review.
+            Monitor screening progress, continue a queue, or start your next
+            evidence review.
           </p>
         </div>
         <Link href="/app/projects/new" className={buttonClass}>

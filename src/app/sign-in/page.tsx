@@ -65,20 +65,20 @@ function SignInForm() {
 
         <div className="max-w-md">
           <p className="text-xs font-semibold uppercase text-[#93c5fd]">
-            Research workflow
+            Evidence review workspace
           </p>
           <h2 className="mt-4 text-4xl font-semibold leading-tight">
-            One clear place for every screening decision.
+            Move from search results to defensible decisions.
           </h2>
           <div className="mt-8 space-y-4">
-            <Benefit text="Import and deduplicate citation records" />
-            <Benefit text="Screen titles and abstracts consistently" />
-            <Benefit text="Build PRISMA totals from live project data" />
+            <Benefit text="Map citation exports and flag duplicate records" />
+            <Benefit text="Keep reviewer decisions tied to every citation" />
+            <Benefit text="Build PRISMA-ready totals from live project data" />
           </div>
         </div>
 
         <p className="text-xs leading-5 text-[#8fa39d]">
-          Built for small systematic and scoping review teams.
+          Designed for small systematic and scoping review teams.
         </p>
       </section>
 
@@ -100,11 +100,11 @@ function SignInForm() {
             </p>
           </div>
           <h1 className="mt-5 text-3xl font-semibold sm:text-4xl">
-            Sign in to your workspace
+            Welcome to Citebench
           </h1>
           <p className="mt-3 text-sm leading-6 text-[#66736f]">
-            Enter your email and we&apos;ll send a secure sign-in link. No
-            password to remember.
+            Enter your email to receive a secure sign-in link. No password to
+            remember.
           </p>
 
           <form
@@ -131,8 +131,8 @@ function SignInForm() {
             {status === "sending"
               ? "Sending..."
               : status === "sent"
-                ? "Magic link sent"
-                : "Send magic link"}
+                ? "Sign-in link sent"
+                : "Email me a sign-in link"}
             {status === "sent" ? (
               <Check aria-hidden="true" size={16} />
             ) : (
@@ -164,14 +164,14 @@ function SignInForm() {
             className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md border border-[#cbd5d1] bg-white px-5 text-sm font-semibold text-[#26322f] transition hover:border-[#9aaba5] hover:bg-[#f8faf9]"
           >
             <Database aria-hidden="true" size={16} />
-            Continue with local prototype
+            Explore the local demo
           </Link>
           </form>
 
           <p className="mt-5 text-center text-xs leading-5 text-[#7a8682]">
             {supabaseConfigured
-              ? "Secure magic-link access is connected through Supabase."
-              : "Magic-link access will activate when the Supabase project is connected."}
+              ? "Secure email sign-in is connected and ready."
+              : "Email sign-in will activate when Supabase is connected."}
           </p>
         </div>
       </section>

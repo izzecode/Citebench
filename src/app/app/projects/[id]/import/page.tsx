@@ -112,8 +112,9 @@ export default function ImportPage() {
             Import citation records
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66736f]">
-            Add a CSV from PubMed, Scopus, or a reference manager. Citebench will
-            map common fields and identify duplicate records.
+            Upload a CSV from PubMed, Scopus, or a reference manager. Citebench
+            maps common columns, flags duplicates, and keeps source records
+            traceable.
           </p>
         </div>
         <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#e8f0fb] px-3 py-1.5 text-xs font-semibold text-[#426d9f]">

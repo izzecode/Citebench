@@ -12,20 +12,20 @@ const workflow = [
   {
     icon: FileSpreadsheet,
     step: "01",
-    title: "Import citation data",
-    copy: "Bring in a CSV from PubMed, Scopus, or a reference manager. Citebench maps fields and identifies duplicates.",
+    title: "Import and clean search results",
+    copy: "Bring in a CSV from PubMed, Scopus, or a reference manager. Citebench maps common columns and flags duplicate records.",
   },
   {
     icon: ScanSearch,
     step: "02",
-    title: "Screen with clarity",
-    copy: "Review one title and abstract at a time using consistent Include, Maybe, and Exclude decisions.",
+    title: "Make consistent decisions",
+    copy: "Review one title and abstract at a time with clear Include, Maybe, and Exclude choices tied to every record.",
   },
   {
     icon: GitCompareArrows,
     step: "03",
-    title: "Resolve and report",
-    copy: "Turn uncertain records into final decisions, then produce a screened dataset and PRISMA totals.",
+    title: "Resolve disagreements and report",
+    copy: "Compare reviewer decisions, resolve uncertainty, and export a screened dataset with PRISMA-ready totals.",
   },
 ];
 
@@ -80,43 +80,42 @@ export default function Home() {
         <div className="relative z-10 mx-auto flex w-full max-w-[1440px] items-center px-5 py-14 sm:px-8 lg:px-10">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase text-[#93c5fd]">
-              Systematic review screening
+              Systematic and scoping review screening
             </p>
             <h1 className="mt-5 text-5xl font-semibold leading-[1.02] sm:text-6xl lg:text-7xl">
               Citebench
             </h1>
             <p className="mt-5 max-w-xl text-xl font-medium leading-8 text-[#d9e4e1] sm:text-2xl">
-              A focused workspace for screening evidence without spreadsheet
-              chaos.
+              Screen evidence with clarity, from first import to final decision.
             </p>
             <p className="mt-5 max-w-xl text-sm leading-7 text-[#aabcb6] sm:text-base">
-              Import citation records, make consistent title and abstract
-              decisions, resolve uncertainty, and keep reporting totals connected
-              to the work.
+              Citebench gives small review teams one place to clean citation
+              records, screen titles and abstracts, resolve disagreements, and
+              keep reporting totals connected to the work.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/app"
+                href="/sign-in"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#2563eb] px-5 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
               >
-                Try the local workspace
+                Start a review
                 <ArrowRight aria-hidden="true" size={16} />
               </Link>
-              <a
-                href="#workflow"
+              <Link
+                href="/app"
                 className="inline-flex h-12 items-center justify-center rounded-md border border-white/20 px-5 text-sm font-semibold text-white transition hover:bg-white/5"
               >
-                See the workflow
-              </a>
+                Explore the workspace
+              </Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs text-[#9fb2ac]">
               <span className="flex items-center gap-2">
                 <Check aria-hidden="true" className="text-[#60a5fa]" size={14} />
-                No account required for prototype
+                Two-reviewer decision workflow
               </span>
               <span className="flex items-center gap-2">
                 <Check aria-hidden="true" className="text-[#60a5fa]" size={14} />
-                Browser-saved test data
+                CSV import and traceable exports
               </span>
             </div>
           </div>
@@ -169,12 +168,12 @@ export default function Home() {
               V1 product boundary
             </p>
             <h2 className="mt-3 max-w-md text-3xl font-semibold sm:text-4xl">
-              Deliberately small enough to stay useful.
+              Everything needed for title and abstract screening.
             </h2>
             <p className="mt-5 max-w-lg text-sm leading-7 text-[#66736f]">
-              Citebench is designed for small review teams that need a structured
-              screening process without the weight of institutional review
-              software.
+              Citebench is deliberately scoped for small review teams that need
+              a defensible screening process without the weight of institutional
+              review software.
             </p>
           </div>
           <div className="border border-[#d8e0dd]">
@@ -197,7 +196,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-5 py-6 text-xs text-[#72807b] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
           <span>Citebench · Evidence screening workspace</span>
           <Link href="/sign-in" className="font-semibold text-[#2563eb]">
-            Connect Supabase
+            Sign in to Citebench
           </Link>
         </div>
       </footer>

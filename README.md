@@ -1,6 +1,9 @@
 # Citebench
 
-Citebench is a lightweight screening workflow for systematic and scoping reviews. The v1 goal is simple: help a small research team upload citation CSVs, screen titles and abstracts, resolve conflicts, and export PRISMA/CSV outputs without spreadsheet chaos.
+Citebench is a focused title and abstract screening workspace for systematic and
+scoping reviews. It helps small review teams clean citation exports, make
+consistent decisions, resolve disagreements, and produce traceable review
+outputs.
 
 ## Current Status
 
@@ -10,10 +13,15 @@ data path:
 - Next.js App Router scaffold.
 - Local project creation, CSV import, screening, conflict review, and export.
 - Deployed Supabase Postgres schema with row-level security.
-- Magic-link sign-in and callback flow.
+- Magic-link sign-in and callback flow, validated with a real account.
 - Hosted project, citation, reviewer decision, and final-decision persistence.
 - Automatic browser-storage fallback while signed out.
-- Build-ready PRD in `docs/PRD.md`.
+- Responsive cobalt interface with semantic success states.
+- Public source repository at `https://github.com/izzecode/Citebench`.
+- Build-ready PRD and hosted acceptance test in `docs/`.
+
+The next milestone is the end-to-end hosted acceptance test, followed by
+two-reviewer invitation and conflict validation.
 
 ## Local Development
 
@@ -29,9 +37,9 @@ Then open:
 http://localhost:3000
 ```
 
-The app works locally without an account and stores prototype data in the
-browser. When Supabase is configured and the user signs in, projects are stored
-in Postgres instead. To connect another Supabase project, copy `.env.example` to
+The app includes a signed-out local demo that stores data in the browser. When
+Supabase is configured and the user signs in, projects are stored in Postgres
+instead. To connect another Supabase project, copy `.env.example` to
 `.env.local`, add the project URL and public key, then apply
 `supabase/migrations/202607280001_initial_schema.sql` in Supabase.
 
@@ -53,7 +61,7 @@ pnpm build
 - Next.js + TypeScript
 - Tailwind CSS
 - Supabase Auth + Postgres + Row Level Security
-- Papa Parse for CSV import
+- Typed CSV parsing with field aliases and duplicate detection
 - Vercel deployment
 
 ## Product Scope

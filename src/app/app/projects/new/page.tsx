@@ -85,8 +85,8 @@ export default function NewProjectPage() {
             Define the review
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66736f]">
-            Give reviewers a clear question and consistent rules before the first
-            citation enters the queue.
+            Write the question and eligibility criteria reviewers will use for
+            every screening decision.
           </p>
 
           <form

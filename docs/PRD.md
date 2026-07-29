@@ -2,7 +2,7 @@
 
 Status: v1 build spec  
 Owner: Olumide Elijah Sorinola  
-Last updated: 2026-07-28
+Last updated: 2026-07-29
 
 ## Implementation Status
 
@@ -15,15 +15,19 @@ Completed:
 - Supabase project connection and hosted schema deployment.
 - Row-level security verified on projects, reviewers, citations, decisions, and
   final decisions.
-- Magic-link auth integration and local callback URL configuration.
+- Magic-link auth integration, local callback configuration, and successful
+  sign-in validation with a real email account in Chrome.
 - Hybrid persistence: authenticated workflows use Supabase while signed-out
   users can continue with the browser prototype.
 - Hosted project creation/list/view, citation import, reviewer decisions, and
   final decisions.
+- Responsive cobalt visual system with teal reserved for success and completion
+  states.
+- Public source repository at `https://github.com/izzecode/Citebench`.
 
 Next validation and launch work:
 
-- End-to-end magic-link sign-in and hosted persistence test with a real email.
+- Run the hosted acceptance test in `docs/HOSTED_ACCEPTANCE_TEST.md`.
 - Co-reviewer invite testing with two real email accounts.
 - Reviewer conflict derivation from both hosted decision sets.
 - PRISMA PNG export.
@@ -89,7 +93,8 @@ Citebench is not a full replacement for Covidence, Rayyan, DistillerSR, Zotero, 
 - Auth: Supabase magic-link authentication.
 - Database: Supabase Postgres.
 - Security: Supabase Row Level Security on all user/project data tables.
-- CSV parsing: Papa Parse.
+- CSV parsing: local typed parser with quoted-cell handling, field aliases, and
+  DOI/title duplicate detection.
 - Hosting: Vercel.
 - Diagram export: generated SVG converted/downloaded as PNG in-browser.
 
@@ -180,12 +185,14 @@ Custom invite tokens are deferred unless Supabase magic-link matching proves ins
 
 ### Landing Page
 
-- Headline: "Run your systematic review without the spreadsheet chaos."
-- Short subtitle.
-- Primary CTA.
-- Three-step explanation.
-- Public roadmap/out-of-scope section.
-- Footer links: GitHub, About, portfolio, privacy, terms.
+- Product headline: "Citebench."
+- Value proposition: "Screen evidence with clarity, from first import to final
+  decision."
+- Primary CTA: "Start a review."
+- Secondary CTA: "Explore the workspace."
+- Three-step import, screening, and resolution explanation.
+- Focused V1 scope section.
+- Footer sign-in link.
 
 ### Auth
 
@@ -387,7 +394,7 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 
 ## Build Plan
 
-### Phase 1: Local Product Shell
+### Phase 1: Local Product Shell — Complete
 
 - Scaffold Next.js app.
 - Add Tailwind styling.
@@ -395,7 +402,7 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - Add route structure.
 - Add static dashboard/screening prototypes.
 
-### Phase 2: Supabase Foundation
+### Phase 2: Supabase Foundation — Complete
 
 - Create Supabase schema migration.
 - Add auth helpers.
@@ -403,7 +410,7 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - Implement project create/list/view.
 - Add RLS policies.
 
-### Phase 3: Citation Import and Screening
+### Phase 3: Citation Import and Screening — Hosted Validation
 
 - Add CSV upload.
 - Add field mapping.
@@ -411,14 +418,14 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - Persist citations.
 - Build screening queue and decisions.
 
-### Phase 4: Collaboration and Conflicts
+### Phase 4: Collaboration and Conflicts — In Progress
 
 - Add reviewer invites.
 - Add pending invite acceptance.
 - Add conflict derivation.
 - Add final decision workflow.
 
-### Phase 5: PRISMA and Export
+### Phase 5: PRISMA and Export — In Progress
 
 - Generate PRISMA SVG.
 - Add PNG export.
@@ -427,11 +434,11 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 
 ## Launch Checklist
 
-- Live URL works.
-- Magic-link sign-in works.
-- Sample CSV is available.
-- Privacy notice and terms are linked.
-- GitHub repo has clear README.
-- README includes screenshot, live URL, and project story.
-- At least two external testers complete a screening session.
-- Portfolio, LinkedIn, and CV are updated.
+- [ ] Live production URL works.
+- [x] Magic-link sign-in works.
+- [x] Sample CSV is available.
+- [ ] Privacy notice and terms are linked.
+- [x] GitHub repo has a clear README.
+- [ ] README includes screenshots, live URL, and project story.
+- [ ] At least two external testers complete a screening session.
+- [ ] Portfolio, LinkedIn, and CV are updated.
