@@ -15,13 +15,16 @@ data path:
 - Deployed Supabase Postgres schema with row-level security.
 - Magic-link sign-in and callback flow, validated with a real account.
 - Hosted project, citation, reviewer decision, and final-decision persistence.
+- Copyable co-reviewer invitations with email-matched acceptance and direct
+  return to the shared screening queue.
+- Clear completion actions after a reviewer finishes every citation.
 - Automatic browser-storage fallback while signed out.
 - Responsive cobalt interface with semantic success states.
 - Public source repository at `https://github.com/izzecode/Citebench`.
 - Build-ready PRD, sample project, and hosted acceptance test in `docs/`.
 
-The next milestone is the end-to-end hosted acceptance test, followed by
-two-reviewer invitation and conflict validation.
+The next milestone is the two-account hosted acceptance test, followed by
+cross-reviewer conflict derivation and production deployment.
 
 ## Local Development
 
@@ -47,7 +50,7 @@ The app includes a signed-out local demo that stores data in the browser. When
 Supabase is configured and the user signs in, projects are stored in Postgres
 instead. To connect another Supabase project, copy `.env.example` to
 `.env.local`, add the project URL and public key, then apply
-`supabase/migrations/202607280001_initial_schema.sql` in Supabase.
+the SQL files in `supabase/migrations` in filename order.
 
 In the Supabase Auth URL settings, add:
 

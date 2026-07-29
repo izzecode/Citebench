@@ -2,11 +2,14 @@
 
 import {
   ArrowLeft,
+  ArrowRight,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
   FileText,
+  GitCompareArrows,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -17,6 +20,7 @@ import {
   EmptyState,
   PageEyebrow,
   buttonClass,
+  secondaryButtonClass,
 } from "@/components/app-chrome";
 import {
   calculateStats,
@@ -188,6 +192,41 @@ export default function ScreeningPage() {
           style={{ width: `${stats.progress}%` }}
         />
       </div>
+
+      {stats.pending === 0 ? (
+        <section
+          className="mt-6 flex flex-col gap-5 border border-[#b9dfd4] bg-[#effaf6] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+          role="status"
+        >
+          <div className="flex min-w-0 gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-[#0f766e] text-white">
+              <CheckCircle2 aria-hidden="true" size={20} />
+            </span>
+            <div>
+              <h2 className="text-base font-semibold text-[#174f47]">
+                Your screening is complete
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-[#477069]">
+                All {citations.length} decisions are saved. Continue to the
+                project to invite a co-reviewer or review the results.
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Link
+              href={`/app/projects/${project.id}/conflicts`}
+              className={secondaryButtonClass}
+            >
+              <GitCompareArrows aria-hidden="true" size={16} />
+              Review decisions
+            </Link>
+            <Link href={`/app/projects/${project.id}`} className={buttonClass}>
+              Continue to project
+              <ArrowRight aria-hidden="true" size={16} />
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       {saveError ? (
         <p

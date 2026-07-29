@@ -7,6 +7,7 @@ import {
   FileUp,
   GitCompareArrows,
   Play,
+  UserPlus,
   Waypoints,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import {
   secondaryButtonClass,
 } from "@/components/app-chrome";
 import { ExportDatasetButton } from "@/components/export-dataset-button";
+import { ReviewTeamPanel } from "@/components/review-team-panel";
 import {
   calculateStats,
   getScreenableCitations,
@@ -28,7 +30,7 @@ import { useLocalProject } from "@/lib/use-local-project";
 
 export default function ProjectDashboardPage() {
   const params = useParams<{ id: string }>();
-  const { project, loaded } = useLocalProject(params.id);
+  const { project, loaded, storageMode } = useLocalProject(params.id);
 
   if (loaded && !project) {
     return (
@@ -97,6 +99,10 @@ export default function ProjectDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <a href="#review-team" className={secondaryButtonClass}>
+            <UserPlus aria-hidden="true" size={16} />
+            {storageMode === "hosted" ? "Invite reviewer" : "Review team"}
+          </a>
           <Link
             href={`/app/projects/${project.id}/screen`}
             className={buttonClass}
@@ -149,6 +155,13 @@ export default function ProjectDashboardPage() {
           value={stats.included + stats.finalIncluded}
         />
       </section>
+
+      <div className="mt-7">
+        <ReviewTeamPanel
+          projectId={project.id}
+          storageMode={storageMode}
+        />
+      </div>
 
       <section className="mt-7 grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="border border-[#d8e0dd] bg-white">

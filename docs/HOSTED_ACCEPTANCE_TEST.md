@@ -38,11 +38,18 @@ Use these values:
    - 1 dropped row with a missing title.
 4. Screen the first citation as `Include`.
 5. Screen the second citation as `Maybe` with `Unclear from abstract`.
-6. Open the review queue for uncertain records and save a final decision with a
+6. Finish the remaining citations and confirm the completion panel offers
+   `Review decisions` and `Continue to project`.
+7. On the project overview, enter a second test email under `Review team`,
+   create the invitation, and copy the generated link.
+8. Open the link in a signed-out browser, request access using the invited
+   email, and confirm the magic link opens this project's screening queue.
+9. Confirm the co-reviewer appears as `active` in the owner's review-team panel.
+10. Open the review queue for uncertain records and save a final decision with a
    non-empty rationale.
-7. Confirm the dashboard metrics update after each decision.
-8. Open the PRISMA view and confirm its totals match the dashboard.
-9. Export the screened CSV and confirm reviewer and final-decision columns are
+11. Confirm the dashboard metrics update after each decision.
+12. Open the PRISMA view and confirm its totals match the dashboard.
+13. Export the screened CSV and confirm reviewer and final-decision columns are
    populated.
 
 ## Database Verification
@@ -75,6 +82,8 @@ Expected result after the workflow:
 
 - No browser console errors block the workflow.
 - The project remains available after a hard refresh.
+- Only the invited email can accept the pending co-reviewer slot.
+- The invite link returns the accepted co-reviewer to the correct queue.
 - Dashboard and PRISMA totals agree.
 - Exported decisions match the choices made in the UI.
 - Supabase returns the expected counts.

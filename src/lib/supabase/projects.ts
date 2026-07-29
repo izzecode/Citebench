@@ -45,6 +45,18 @@ type FinalDecisionRow = {
   updated_at: string;
 };
 
+export type HostedReviewer = {
+  id: string;
+  email: string;
+  role: "owner" | "reviewer";
+  status: "active" | "pending";
+};
+
+export type HostedReviewTeam = {
+  isOwner: boolean;
+  reviewers: HostedReviewer[];
+};
+
 export async function getHostedUser(): Promise<User | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
@@ -256,6 +268,114 @@ export async function createHostedProject(
     ...project,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+export async function loadHostedReviewTeam(
+  projectId: string,
+): Promise<HostedReviewTeam | null> {
+  const supabase = getSupabaseBrowserClient();
+  const user = await getHostedUser();
+
+  if (!supabase || !user) {
+    return null;
+  }
+
+  const [
+    { data: projectData, error: projectError },
+    { data: reviewerData, error: reviewerError },
+  ] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("owner_id")
+      .eq("id", projectId)
+      .maybeSingle(),
+    supabase
+      .from("reviewers")
+      .select("id,email,role,accepted_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true }),
+  ]);
+
+  if (projectError) {
+    throw new Error(projectError.message);
+  }
+  if (reviewerError) {
+    throw new Error(reviewerError.message);
+  }
+  if (!projectData) {
+    return null;
+  }
+
+  return {
+    isOwner: (projectData as { owner_id: string }).owner_id === user.id,
+    reviewers: (
+      (reviewerData ?? []) as Array<{
+        id: string;
+        email: string;
+        role: "owner" | "reviewer";
+        accepted_at: string | null;
+      }>
+    ).map((reviewer) => ({
+      id: reviewer.id,
+      email: reviewer.email,
+      role: reviewer.role,
+      status: reviewer.accepted_at ? "active" : "pending",
+    })),
+  };
+}
+
+export async function inviteHostedReviewer(
+  projectId: string,
+  email: string,
+): Promise<HostedReviewer> {
+  const supabase = getSupabaseBrowserClient();
+  const user = await getHostedUser();
+
+  if (!supabase || !user) {
+    throw new Error("Sign in to invite a reviewer.");
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error("Enter the reviewer email address.");
+  }
+  if (normalizedEmail === user.email?.toLowerCase()) {
+    throw new Error("You are already the owner reviewer.");
+  }
+
+  const { data, error } = await supabase
+    .from("reviewers")
+    .insert({
+      project_id: projectId,
+      email: normalizedEmail,
+      role: "reviewer",
+    })
+    .select("id,email,role,accepted_at")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("That reviewer is already invited.");
+    }
+    if (error.message.includes("at most two reviewers")) {
+      throw new Error("This project already has its co-reviewer.");
+    }
+    throw new Error(error.message);
+  }
+
+  const reviewer = data as {
+    id: string;
+    email: string;
+    role: "owner" | "reviewer";
+    accepted_at: string | null;
+  };
+
+  return {
+    id: reviewer.id,
+    email: reviewer.email,
+    role: reviewer.role,
+    status: reviewer.accepted_at ? "active" : "pending",
   };
 }
 

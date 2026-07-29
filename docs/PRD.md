@@ -23,6 +23,12 @@ Completed:
   final decisions.
 - Authenticated project creation derives ownership from the Supabase session
   inside the database, preventing client/RLS identity mismatches.
+- Owner review-team panel with pending co-reviewer creation, a copyable invite
+  link, and accepted/pending status.
+- Invite-aware magic-link sign-in returns accepted co-reviewers directly to the
+  project screening queue.
+- Completed screening state provides direct actions to the project overview and
+  decision review.
 - Responsive cobalt visual system with teal reserved for success and completion
   states.
 - Synthetic 12-row acceptance dataset covering duplicates, missing data, clear
@@ -180,8 +186,11 @@ V1 invite flow:
 
 1. Project owner enters co-reviewer email.
 2. App creates a pending reviewer record.
-3. Co-reviewer signs in with Supabase magic link.
-4. If the signed-in email matches a pending reviewer record, the invite is accepted.
+3. Owner copies and sends the project invitation link.
+4. Co-reviewer opens the link and requests a Supabase magic link using the
+   invited email.
+5. If the signed-in email matches the pending reviewer record, the invite is
+   accepted and the co-reviewer is sent to the screening queue.
 
 Custom invite tokens are deferred unless Supabase magic-link matching proves insufficient.
 
@@ -258,6 +267,7 @@ Actions:
 - Include, Maybe, Exclude actions.
 - Optional exclusion/maybe reason.
 - Back/forward navigation.
+- Completion state with project overview and decision-review actions.
 - Keyboard shortcuts:
   - `1`: Include.
   - `2`: Maybe.
@@ -424,8 +434,8 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 
 ### Phase 4: Collaboration and Conflicts — In Progress
 
-- Add reviewer invites.
-- Add pending invite acceptance.
+- Reviewer invites and copyable share links complete.
+- Pending invite acceptance and direct screening return complete.
 - Add conflict derivation.
 - Add final decision workflow.
 

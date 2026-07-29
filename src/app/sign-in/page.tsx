@@ -14,6 +14,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function SignInForm() {
   const searchParams = useSearchParams();
+  const requestedNext = searchParams.get("next");
+  const next =
+    requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/app";
+  const isInvitation = searchParams.get("invite") === "1";
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
     "idle" | "sending" | "sent" | "error"
@@ -34,10 +40,13 @@ function SignInForm() {
     setStatus("sending");
     setMessage("");
 
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", next);
+
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: callbackUrl.toString(),
       },
     });
 
@@ -100,11 +109,12 @@ function SignInForm() {
             </p>
           </div>
           <h1 className="mt-5 text-3xl font-semibold sm:text-4xl">
-            Welcome to Citebench
+            {isInvitation ? "Join this Citebench review" : "Welcome to Citebench"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-[#66736f]">
-            Enter your email to receive a secure sign-in link. No password to
-            remember.
+            {isInvitation
+              ? "Use the email address your project owner invited. We will send a secure link that opens the screening queue."
+              : "Enter your email to receive a secure sign-in link. No password to remember."}
           </p>
 
           <form
@@ -132,7 +142,9 @@ function SignInForm() {
               ? "Sending..."
               : status === "sent"
                 ? "Sign-in link sent"
-                : "Email me a sign-in link"}
+                : isInvitation
+                  ? "Send my review access link"
+                  : "Email me a sign-in link"}
             {status === "sent" ? (
               <Check aria-hidden="true" size={16} />
             ) : (
