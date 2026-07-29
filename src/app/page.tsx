@@ -19,7 +19,7 @@ const workflow = [
     icon: ScanSearch,
     step: "02",
     title: "Make consistent decisions",
-    copy: "Review one title and abstract at a time with clear Include, Maybe, and Exclude choices tied to every record.",
+    copy: "Screen titles and abstracts, then review eligible full-text PDFs with clear decisions tied to every record.",
   },
   {
     icon: GitCompareArrows,
@@ -39,6 +39,7 @@ const decisions = [
 const boundaries = [
   "Flexible review workflows",
   "Title and abstract screening",
+  "Private full-text PDF review",
   "CSV import and export",
   "PRISMA flow totals",
 ];
@@ -59,7 +60,7 @@ export default function Home() {
               Workflow
             </a>
             <a href="#scope" className="transition hover:text-white">
-              V1 scope
+              Scope
             </a>
             <Link href="/sign-in" className="transition hover:text-white">
               Sign in
@@ -90,8 +91,9 @@ export default function Home() {
             </p>
             <p className="mt-5 max-w-xl text-sm leading-7 text-[#aabcb6] sm:text-base">
               Citebench gives small review teams one place to clean citation
-              records, screen titles and abstracts, resolve disagreements, and
-              keep reporting totals connected to the work.
+              records, screen titles and abstracts, review full-text PDFs,
+              resolve disagreements, and keep reporting totals connected to the
+              work.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -165,10 +167,10 @@ export default function Home() {
         <div className="mx-auto grid max-w-[1440px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:px-10">
           <div>
             <p className="text-xs font-semibold uppercase text-[#1d4ed8]">
-              V1 product boundary
+              Focused product scope
             </p>
             <h2 className="mt-3 max-w-md text-3xl font-semibold sm:text-4xl">
-              Everything needed for title and abstract screening.
+              A connected path from citations to included studies.
             </h2>
             <p className="mt-5 max-w-lg text-sm leading-7 text-[#66736f]">
               Citebench is deliberately scoped for small review teams that need
