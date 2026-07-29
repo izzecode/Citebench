@@ -128,6 +128,25 @@ export default function ScreeningPage() {
     return <AppChrome>Loading...</AppChrome>;
   }
 
+  if (project.currentRole === "adjudicator") {
+    return (
+      <AppChrome>
+        <EmptyState
+          title="Adjudicators resolve disagreements"
+          copy="This role does not screen every citation. Open the resolution queue after both independent reviewers have submitted decisions."
+          action={
+            <Link
+              href={`/app/projects/${project.id}/conflicts`}
+              className={buttonClass}
+            >
+              Open resolution
+            </Link>
+          }
+        />
+      </AppChrome>
+    );
+  }
+
   if (!citations.length) {
     return (
       <AppChrome>
@@ -175,7 +194,7 @@ export default function ScreeningPage() {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-xs text-[#7a8682]">Overall progress</p>
+            <p className="text-xs text-[#7a8682]">Your progress</p>
             <p className="mt-1 text-sm font-semibold text-[#26322f]">
               {stats.screened} / {citations.length}
             </p>
@@ -208,7 +227,7 @@ export default function ScreeningPage() {
               </h2>
               <p className="mt-1 text-sm leading-6 text-[#477069]">
                 All {citations.length} decisions are saved. Continue to the
-                project to invite a co-reviewer or review the results.
+                project to check team progress or review the results.
               </p>
             </div>
           </div>

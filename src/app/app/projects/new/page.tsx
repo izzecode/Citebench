@@ -5,7 +5,9 @@ import {
   ArrowRight,
   Check,
   FileUp,
+  Gavel,
   ListChecks,
+  UserRound,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -17,7 +19,11 @@ import {
   buttonClass,
   secondaryButtonClass,
 } from "@/components/app-chrome";
-import { createProject, upsertProject } from "@/lib/citebench";
+import {
+  createProject,
+  upsertProject,
+  type ScreeningMode,
+} from "@/lib/citebench";
 import { createHostedProject } from "@/lib/supabase/projects";
 
 const inputClass =
@@ -29,6 +35,8 @@ export default function NewProjectPage() {
   const [researchQuestion, setResearchQuestion] = useState("");
   const [inclusionCriteria, setInclusionCriteria] = useState("");
   const [exclusionCriteria, setExclusionCriteria] = useState("");
+  const [screeningMode, setScreeningMode] =
+    useState<ScreeningMode>("dual");
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -49,6 +57,7 @@ export default function NewProjectPage() {
         researchQuestion,
         inclusionCriteria,
         exclusionCriteria,
+        screeningMode,
       };
       const hostedProject = await createHostedProject(input);
       const project = hostedProject ?? createProject(input);
@@ -135,6 +144,45 @@ export default function NewProjectPage() {
                   className={`${inputClass} py-3 leading-6`}
                 />
               </Field>
+
+              <fieldset>
+                <legend className="text-sm font-semibold text-[#26322f]">
+                  Review workflow
+                </legend>
+                <p className="mt-1 text-xs text-[#7a8682]">
+                  Choose how eligibility decisions will be checked and resolved.
+                </p>
+                <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  <ModeOption
+                    mode="solo"
+                    selected={screeningMode === "solo"}
+                    onSelect={setScreeningMode}
+                    icon={<UserRound aria-hidden="true" size={17} />}
+                    title="Solo"
+                    count="1 reviewer"
+                    copy="One reviewer screens and resolves uncertain records."
+                  />
+                  <ModeOption
+                    mode="dual"
+                    selected={screeningMode === "dual"}
+                    onSelect={setScreeningMode}
+                    icon={<Users aria-hidden="true" size={17} />}
+                    title="Dual independent"
+                    count="2 reviewers"
+                    copy="Two people screen independently; the owner resolves conflicts."
+                    recommended
+                  />
+                  <ModeOption
+                    mode="dual_adjudicated"
+                    selected={screeningMode === "dual_adjudicated"}
+                    onSelect={setScreeningMode}
+                    icon={<Gavel aria-hidden="true" size={17} />}
+                    title="With adjudicator"
+                    count="3 people"
+                    copy="Two people screen; a third person resolves disagreements."
+                  />
+                </div>
+              </fieldset>
 
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="Inclusion criteria">
@@ -227,6 +275,70 @@ function Field({
       </span>
       {hint ? <span className="mt-1 block text-xs text-[#7a8682]">{hint}</span> : null}
       {children}
+    </label>
+  );
+}
+
+function ModeOption({
+  mode,
+  selected,
+  onSelect,
+  icon,
+  title,
+  count,
+  copy,
+  recommended = false,
+}: {
+  mode: ScreeningMode;
+  selected: boolean;
+  onSelect: (mode: ScreeningMode) => void;
+  icon: React.ReactNode;
+  title: string;
+  count: string;
+  copy: string;
+  recommended?: boolean;
+}) {
+  return (
+    <label
+      className={`relative cursor-pointer rounded-md border p-3.5 transition ${
+        selected
+          ? "border-[#2563eb] bg-[#eff6ff] shadow-[0_0_0_1px_#2563eb]"
+          : "border-[#d4ddda] bg-white hover:border-[#9eb0aa]"
+      }`}
+    >
+      <input
+        type="radio"
+        name="screening-mode"
+        value={mode}
+        checked={selected}
+        onChange={() => onSelect(mode)}
+        className="sr-only"
+      />
+      <span className="flex items-center justify-between gap-2">
+        <span
+          className={`grid size-8 place-items-center rounded-md ${
+            selected
+              ? "bg-[#2563eb] text-white"
+              : "bg-[#eef2f0] text-[#52605c]"
+          }`}
+        >
+          {icon}
+        </span>
+        {recommended ? (
+          <span className="rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-semibold text-[#1d4ed8]">
+            Recommended
+          </span>
+        ) : null}
+      </span>
+      <span className="mt-3 block text-sm font-semibold text-[#26322f]">
+        {title}
+      </span>
+      <span className="mt-0.5 block text-xs font-medium text-[#2563eb]">
+        {count}
+      </span>
+      <span className="mt-2 block text-xs leading-5 text-[#687570]">
+        {copy}
+      </span>
     </label>
   );
 }

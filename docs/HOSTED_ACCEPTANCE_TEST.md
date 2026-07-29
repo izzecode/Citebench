@@ -26,6 +26,7 @@ Use these values:
 - Research question: `How is telehealth used to support adults after stroke discharge?`
 - Inclusion criteria: `Adults after stroke; telehealth follow-up; primary research; title or abstract in English.`
 - Exclusion criteria: `Non-stroke populations; no telehealth component; protocols, editorials, or reviews.`
+- Review workflow: `Dual with adjudicator`
 
 ## Workflow
 
@@ -40,17 +41,24 @@ Use these values:
 5. Screen the second citation as `Maybe` with `Unclear from abstract`.
 6. Finish the remaining citations and confirm the completion panel offers
    `Review decisions` and `Continue to project`.
-7. On the project overview, enter a second test email under `Review team`,
-   create the invitation, and copy the generated link.
-8. Open the link in a signed-out browser, request access using the invited
-   email, and confirm the magic link opens this project's screening queue.
-9. Confirm the co-reviewer appears as `active` in the owner's review-team panel.
-10. Open the review queue for uncertain records and save a final decision with a
-   non-empty rationale.
-11. Confirm the dashboard metrics update after each decision.
-12. Open the PRISMA view and confirm its totals match the dashboard.
-13. Export the screened CSV and confirm reviewer and final-decision columns are
-   populated.
+7. On the project overview, confirm the workflow is `Dual with adjudicator`.
+8. Invite a second test email as the reviewer, copy the generated link, and
+   accept it in a signed-out browser. Confirm it opens the screening queue.
+9. Screen all nine citations as the invited reviewer, deliberately disagreeing
+   with the owner on at least one citation.
+10. Invite a third test email as the adjudicator, copy the generated link, and
+    accept it in another signed-out browser. Confirm it opens conflict
+    resolution instead of screening.
+11. Confirm both invitees appear as `active` with the correct roles in the
+    owner's review-team panel.
+12. Confirm resolution stays unavailable for citations until both primary
+    reviewers have voted.
+13. Resolve every disagreement and Maybe with a non-empty rationale as the
+    adjudicator.
+14. Confirm the dashboard metrics update after each decision.
+15. Open the PRISMA view and confirm its totals match the dashboard.
+16. Export the screened CSV and confirm both reviewer decisions and final
+    decisions are populated.
 
 ## Database Verification
 
@@ -71,19 +79,20 @@ where p.title = 'Telehealth follow-up after stroke - hosted acceptance test'
 group by p.id, p.title;
 ```
 
-Expected result after the workflow:
+Expected result after both reviewers finish and at least one item is resolved:
 
 - `citation_rows`: 11
 - `unique_citations`: 9
-- `reviewer_decisions`: 2
-- `final_decisions`: 1
+- `reviewer_decisions`: 18
+- `final_decisions`: at least 1
 
 ## Pass Criteria
 
 - No browser console errors block the workflow.
 - The project remains available after a hard refresh.
-- Only the invited email can accept the pending co-reviewer slot.
-- The invite link returns the accepted co-reviewer to the correct queue.
+- Only the invited emails can accept their pending role slots.
+- Reviewer and adjudicator links return each invitee to the correct workflow.
+- The adjudicator cannot submit primary screening decisions.
 - Dashboard and PRISMA totals agree.
 - Exported decisions match the choices made in the UI.
 - Supabase returns the expected counts.

@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   FileUp,
+  Gavel,
   GitCompareArrows,
   Play,
   UserPlus,
@@ -30,7 +31,7 @@ import { useLocalProject } from "@/lib/use-local-project";
 
 export default function ProjectDashboardPage() {
   const params = useParams<{ id: string }>();
-  const { project, loaded, storageMode } = useLocalProject(params.id);
+  const { project, setProject, loaded, storageMode } = useLocalProject(params.id);
 
   if (loaded && !project) {
     return (
@@ -61,6 +62,7 @@ export default function ProjectDashboardPage() {
   const citations = getScreenableCitations(project);
   const recent = citations.slice(0, 6);
   const screeningReady = stats.uniqueCitations > 0;
+  const isAdjudicator = project.currentRole === "adjudicator";
 
   return (
     <AppChrome>
@@ -101,14 +103,30 @@ export default function ProjectDashboardPage() {
         <div className="flex flex-wrap gap-2">
           <a href="#review-team" className={secondaryButtonClass}>
             <UserPlus aria-hidden="true" size={16} />
-            {storageMode === "hosted" ? "Invite reviewer" : "Review team"}
+            {project.screeningMode === "solo"
+              ? "Review setup"
+              : storageMode === "hosted"
+                ? "Invite team"
+                : "Review team"}
           </a>
           <Link
-            href={`/app/projects/${project.id}/screen`}
+            href={
+              isAdjudicator
+                ? `/app/projects/${project.id}/conflicts`
+                : `/app/projects/${project.id}/screen`
+            }
             className={buttonClass}
           >
-            <Play aria-hidden="true" size={15} fill="currentColor" />
-            {stats.screened ? "Resume screening" : "Start screening"}
+            {isAdjudicator ? (
+              <Gavel aria-hidden="true" size={16} />
+            ) : (
+              <Play aria-hidden="true" size={15} fill="currentColor" />
+            )}
+            {isAdjudicator
+              ? "Open resolution"
+              : stats.screened
+                ? "Resume screening"
+                : "Start screening"}
           </Link>
           <Link
             href={`/app/projects/${project.id}/import`}
@@ -160,6 +178,10 @@ export default function ProjectDashboardPage() {
         <ReviewTeamPanel
           projectId={project.id}
           storageMode={storageMode}
+          screeningMode={project.screeningMode}
+          onScreeningModeChange={(screeningMode) =>
+            setProject({ ...project, screeningMode })
+          }
         />
       </div>
 

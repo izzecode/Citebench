@@ -15,16 +15,19 @@ data path:
 - Deployed Supabase Postgres schema with row-level security.
 - Magic-link sign-in and callback flow, validated with a real account.
 - Hosted project, citation, reviewer decision, and final-decision persistence.
-- Copyable co-reviewer invitations with email-matched acceptance and direct
-  return to the shared screening queue.
+- Configurable solo, dual-independent, and dual-with-adjudicator workflows.
+- Copyable role-specific invitations with email-matched acceptance and direct
+  return to screening or conflict resolution.
+- Automatic cross-reviewer conflict derivation with owner or adjudicator
+  resolution.
 - Clear completion actions after a reviewer finishes every citation.
 - Automatic browser-storage fallback while signed out.
 - Responsive cobalt interface with semantic success states.
 - Public source repository at `https://github.com/izzecode/Citebench`.
 - Build-ready PRD, sample project, and hosted acceptance test in `docs/`.
 
-The next milestone is the two-account hosted acceptance test, followed by
-cross-reviewer conflict derivation and production deployment.
+The next milestone is the multi-account hosted acceptance test, followed by
+PRISMA PNG export and production deployment.
 
 ## Local Development
 
@@ -78,7 +81,8 @@ pnpm build
 V1 supports:
 
 - One project owner.
-- One optional co-reviewer.
+- Solo, dual-independent, or dual-with-adjudicator review workflows.
+- Up to two independent screeners and one non-screening adjudicator.
 - Title/abstract screening only.
 - CSV import.
 - Include/Maybe/Exclude reviewer decisions.
@@ -89,7 +93,7 @@ V1 supports:
 Out of scope for v1:
 
 - Full-text PDF screening.
-- More than two reviewers.
+- More than two primary screeners.
 - Risk of bias assessment.
 - Data extraction.
 - Institution/team workspaces.

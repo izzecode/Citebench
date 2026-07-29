@@ -64,6 +64,7 @@ export function useLocalProject(projectId: string) {
         await persistHostedProject(nextProject, previousProject);
         return true;
       } catch (error) {
+        setProjectState(previousProject);
         setSaveError(
           error instanceof Error ? error.message : "Changes could not be saved.",
         );

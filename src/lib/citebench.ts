@@ -1,5 +1,7 @@
 export type Verdict = "include" | "maybe" | "exclude";
 export type FinalVerdict = "include" | "exclude";
+export type ScreeningMode = "solo" | "dual" | "dual_adjudicated";
+export type ReviewerRole = "owner" | "reviewer" | "adjudicator";
 
 export type Citation = {
   id: string;
@@ -42,6 +44,8 @@ export type Project = {
   researchQuestion: string;
   inclusionCriteria: string;
   exclusionCriteria: string;
+  screeningMode: ScreeningMode;
+  currentRole: ReviewerRole;
   createdAt: string;
   updatedAt: string;
   citations: Citation[];
@@ -53,7 +57,9 @@ export type Project = {
 export type ProjectInput = Pick<
   Project,
   "title" | "researchQuestion" | "inclusionCriteria" | "exclusionCriteria"
->;
+> & {
+  screeningMode?: ScreeningMode;
+};
 
 export type ProjectStats = {
   totalCitations: number;
@@ -103,6 +109,8 @@ export function createProject(input: ProjectInput): Project {
     researchQuestion: input.researchQuestion.trim(),
     inclusionCriteria: input.inclusionCriteria.trim(),
     exclusionCriteria: input.exclusionCriteria.trim(),
+    screeningMode: input.screeningMode ?? "dual",
+    currentRole: "owner",
     createdAt: now,
     updatedAt: now,
     citations: [],
@@ -260,7 +268,13 @@ export function loadProjects(): Project[] {
 
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Project[]) : [];
+    return raw
+      ? (JSON.parse(raw) as Project[]).map((project) => ({
+          ...project,
+          screeningMode: project.screeningMode ?? "dual",
+          currentRole: project.currentRole ?? "owner",
+        }))
+      : [];
   } catch {
     return [];
   }

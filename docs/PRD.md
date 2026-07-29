@@ -23,10 +23,13 @@ Completed:
   final decisions.
 - Authenticated project creation derives ownership from the Supabase session
   inside the database, preventing client/RLS identity mismatches.
-- Owner review-team panel with pending co-reviewer creation, a copyable invite
-  link, and accepted/pending status.
-- Invite-aware magic-link sign-in returns accepted co-reviewers directly to the
-  project screening queue.
+- Configurable solo, dual-independent, and dual-with-adjudicator workflows.
+- Owner review-team panel with role-specific invitations, copyable links,
+  accepted/pending status, and member removal.
+- Invite-aware magic-link sign-in returns accepted reviewers to screening and
+  adjudicators to conflict resolution.
+- Cross-reviewer conflict derivation from both hosted decision sets, with owner
+  or adjudicator final decisions.
 - Completed screening state provides direct actions to the project overview and
   decision review.
 - Responsive cobalt visual system with teal reserved for success and completion
@@ -39,7 +42,6 @@ Next validation and launch work:
 
 - Run the hosted acceptance test in `docs/HOSTED_ACCEPTANCE_TEST.md`.
 - Co-reviewer invite testing with two real email accounts.
-- Reviewer conflict derivation from both hosted decision sets.
 - PRISMA PNG export.
 - Production deployment and launch policies.
 
@@ -47,7 +49,7 @@ Next validation and launch work:
 
 Citebench is a lightweight web app for early-career researchers running systematic or scoping reviews. It helps a small review team move from an exported citation CSV to title/abstract screening, conflict resolution, a screened dataset, and a PRISMA-style flow diagram without relying on spreadsheets or heavyweight institutional software.
 
-The v1 product is intentionally narrow: one project owner, up to one co-reviewer, title/abstract screening only, CSV import, conflict resolution, and export.
+The v1 product is intentionally narrow: one project owner, up to two independent screeners, one optional adjudicator, title/abstract screening only, CSV import, conflict resolution, and export.
 
 ## Target Users
 
@@ -55,9 +57,11 @@ The v1 product is intentionally narrow: one project owner, up to one co-reviewer
 
 An early-career researcher, PhD student, research assistant, or junior fellow leading a first or second systematic/scoping review. They are comfortable with spreadsheets but want a structured workflow.
 
-### Secondary User
+### Secondary Users
 
-A co-reviewer invited to screen citations. They should be able to follow a link, sign in, and start screening with little setup.
+A co-reviewer invited to screen citations, or an adjudicator invited to resolve
+disagreements. They should be able to follow a role-specific link, sign in, and
+start the assigned work with little setup.
 
 ## Positioning
 
@@ -71,9 +75,11 @@ Citebench is not a full replacement for Covidence, Rayyan, DistillerSR, Zotero, 
 ## V1 Goals
 
 - Let a researcher create a project and import citations in under 15 minutes.
-- Support two reviewers screening the same citation set independently.
+- Let owners choose solo, dual-independent, or dual-with-adjudicator workflows.
+- Support up to two reviewers screening the same citation set independently.
 - Surface reviewer disagreements automatically.
-- Let the project owner make final include/exclude decisions.
+- Let the project owner or assigned adjudicator make final include/exclude
+  decisions.
 - Generate a PRISMA-style flow diagram from project data.
 - Export the screened dataset as CSV.
 - Provide a deployable portfolio-quality product with a real live URL.
@@ -85,7 +91,7 @@ Citebench is not a full replacement for Covidence, Rayyan, DistillerSR, Zotero, 
 - Risk of bias assessment.
 - Data extraction for meta-analysis.
 - Reference manager replacement.
-- More than two reviewers.
+- More than two primary screeners.
 - Team or institution workspaces.
 - Real-time collaborative editing.
 - Custom PRISMA templates.
@@ -108,14 +114,19 @@ Citebench is not a full replacement for Covidence, Rayyan, DistillerSR, Zotero, 
 - Hosting: Vercel.
 - Diagram export: generated SVG converted/downloaded as PNG in-browser.
 
-### Reviewer Limit
+### Review Workflows
 
-V1 supports a maximum of two reviewers per project:
+V1 supports three explicit workflows:
 
-- Owner reviewer.
-- Optional invited co-reviewer.
+- Solo: the owner screens and resolves uncertain records.
+- Dual independent: the owner and one invited reviewer screen independently;
+  the owner resolves disagreements.
+- Dual with adjudicator: the owner and one invited reviewer screen
+  independently; one invited adjudicator resolves disagreements without
+  submitting primary screening votes.
 
-Any request for three or more reviewers is out of scope for v1.
+The maximum team size is three people, but the maximum number of primary
+screeners remains two. Larger voting panels are out of scope for v1.
 
 ### Screening Verdicts
 
@@ -132,16 +143,18 @@ The project owner can make final decisions only as:
 
 ### Conflict Rules
 
-A citation is considered a conflict when both reviewers have screened it and their verdicts differ.
+A citation enters resolution after both primary reviewers have screened it when
+their verdicts differ or either reviewer selected Maybe.
 
 Examples:
 
 - Include vs Exclude: conflict.
 - Include vs Maybe: conflict.
 - Exclude vs Maybe: conflict.
-- Maybe vs Maybe: not a conflict, but still unresolved until final decision rules are applied.
+- Maybe vs Maybe: requires resolution.
 
-For v1, any citation with at least one Maybe should appear in the conflict/resolution workflow unless both reviewers chose the same non-Maybe verdict.
+Matching Include or matching Exclude verdicts are accepted without a separate
+final decision. In solo mode, the owner's Maybe decisions enter resolution.
 
 ### Duplicate Detection
 
@@ -184,13 +197,13 @@ Rows without a usable title are dropped and counted with a reason.
 
 V1 invite flow:
 
-1. Project owner enters co-reviewer email.
-2. App creates a pending reviewer record.
-3. Owner copies and sends the project invitation link.
-4. Co-reviewer opens the link and requests a Supabase magic link using the
-   invited email.
-5. If the signed-in email matches the pending reviewer record, the invite is
-   accepted and the co-reviewer is sent to the screening queue.
+1. Project owner chooses a workflow and enters the email for an available role.
+2. App creates a pending reviewer or adjudicator record.
+3. Owner copies and sends the role-specific invitation link.
+4. Invitee opens the link and requests a Supabase magic link using the invited
+   email.
+5. If the signed-in email matches the pending record, the invite is accepted.
+6. Reviewers are sent to screening; adjudicators are sent to resolution.
 
 Custom invite tokens are deferred unless Supabase magic-link matching proves insufficient.
 
@@ -227,11 +240,12 @@ Fields:
 - Research question.
 - Inclusion criteria.
 - Exclusion criteria.
+- Review workflow.
 
 Follow-up setup actions:
 
 - Import CSV.
-- Invite co-reviewer.
+- Invite reviewer or adjudicator when required by the selected workflow.
 
 ### CSV Import
 
@@ -319,6 +333,7 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - `research_question text`
 - `inclusion_criteria text`
 - `exclusion_criteria text`
+- `screening_mode text not null check screening_mode in ('solo', 'dual', 'dual_adjudicated')`
 - `created_at timestamptz not null default now()`
 - `updated_at timestamptz not null default now()`
 
@@ -328,7 +343,7 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - `project_id uuid not null references projects(id)`
 - `user_id uuid references auth.users(id)`
 - `email text not null`
-- `role text not null check role in ('owner', 'reviewer')`
+- `role text not null check role in ('owner', 'reviewer', 'adjudicator')`
 - `invited_at timestamptz`
 - `accepted_at timestamptz`
 
@@ -388,10 +403,12 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - User can create a project.
 - User can import a CSV and see import summary.
 - User can screen unique citations.
-- User can invite one co-reviewer.
-- Co-reviewer can accept and screen.
-- Owner can see conflicts.
-- Owner can resolve conflicts.
+- User can select solo, dual-independent, or dual-with-adjudicator mode.
+- User can invite one co-reviewer and, when enabled, one adjudicator.
+- Invitees can accept and land in their role-specific workflow.
+- Both primary reviewers can screen independently.
+- Owner and assigned adjudicator can see conflicts.
+- The configured resolver can save final decisions.
 - Dashboard reflects project progress.
 - PRISMA flow renders from project data.
 - User can export CSV.
@@ -432,12 +449,13 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - Persist citations.
 - Build screening queue and decisions.
 
-### Phase 4: Collaboration and Conflicts — In Progress
+### Phase 4: Collaboration and Conflicts — Complete
 
 - Reviewer invites and copyable share links complete.
 - Pending invite acceptance and direct screening return complete.
-- Add conflict derivation.
-- Add final decision workflow.
+- Configurable review workflows and role limits complete.
+- Cross-reviewer conflict derivation complete.
+- Owner/adjudicator final decision workflow complete.
 
 ### Phase 5: PRISMA and Export — In Progress
 

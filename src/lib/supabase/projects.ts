@@ -6,6 +6,9 @@ import {
   type FinalDecision,
   type Project,
   type ProjectInput,
+  type ReviewerRole,
+  type ScreeningMode,
+  type Verdict,
 } from "@/lib/citebench";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -15,6 +18,7 @@ type ProjectRow = {
   research_question: string;
   inclusion_criteria: string;
   exclusion_criteria: string;
+  screening_mode: ScreeningMode;
   created_at: string;
   updated_at: string;
 };
@@ -33,6 +37,7 @@ type CitationRow = {
 
 type DecisionRow = {
   citation_id: string;
+  reviewer_id?: string;
   verdict: Decision["verdict"];
   reason: string;
   updated_at: string;
@@ -48,13 +53,25 @@ type FinalDecisionRow = {
 export type HostedReviewer = {
   id: string;
   email: string;
-  role: "owner" | "reviewer";
+  role: ReviewerRole;
   status: "active" | "pending";
 };
 
 export type HostedReviewTeam = {
   isOwner: boolean;
+  currentRole: ReviewerRole;
+  screeningMode: ScreeningMode;
   reviewers: HostedReviewer[];
+};
+
+export type HostedReviewerDecision = {
+  citationId: string;
+  reviewerId: string;
+  reviewerEmail: string;
+  reviewerRole: "owner" | "reviewer";
+  verdict: Verdict;
+  reason: string;
+  decidedAt: string;
 };
 
 export async function getHostedUser(): Promise<User | null> {
@@ -81,7 +98,7 @@ export async function loadHostedProjects(): Promise<Project[] | null> {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id,title,research_question,inclusion_criteria,exclusion_criteria,created_at,updated_at",
+      "id,title,research_question,inclusion_criteria,exclusion_criteria,screening_mode,created_at,updated_at",
     )
     .order("created_at", { ascending: false });
 
@@ -116,7 +133,7 @@ export async function loadHostedProject(
     const { data, error } = await supabase
       .from("projects")
       .select(
-        "id,title,research_question,inclusion_criteria,exclusion_criteria,created_at,updated_at",
+        "id,title,research_question,inclusion_criteria,exclusion_criteria,screening_mode,created_at,updated_at",
       )
       .eq("id", projectId)
       .maybeSingle();
@@ -145,7 +162,7 @@ export async function loadHostedProject(
       .order("created_at", { ascending: true }),
     supabase
       .from("reviewers")
-      .select("id")
+      .select("id,role")
       .eq("project_id", projectId)
       .eq("user_id", user.id)
       .maybeSingle(),
@@ -160,7 +177,11 @@ export async function loadHostedProject(
 
   const citationRows = (citationData ?? []) as CitationRow[];
   const citationIds = citationRows.map((citation) => citation.id);
-  const reviewerId = (reviewerData as { id: string } | null)?.id;
+  const currentReviewer = reviewerData as {
+    id: string;
+    role: ReviewerRole;
+  } | null;
+  const reviewerId = currentReviewer?.id;
 
   const decisionRequest = reviewerId
     ? supabase
@@ -217,6 +238,8 @@ export async function loadHostedProject(
     researchQuestion: projectRow.research_question,
     inclusionCriteria: projectRow.inclusion_criteria,
     exclusionCriteria: projectRow.exclusion_criteria,
+    screeningMode: projectRow.screening_mode ?? "dual",
+    currentRole: currentReviewer?.role ?? "reviewer",
     createdAt: projectRow.created_at,
     updatedAt: projectRow.updated_at,
     citations: citationRows.map(mapCitation),
@@ -253,6 +276,7 @@ export async function createHostedProject(
     p_research_question: project.researchQuestion,
     p_inclusion_criteria: project.inclusionCriteria,
     p_exclusion_criteria: project.exclusionCriteria,
+    p_screening_mode: project.screeningMode,
   });
 
   if (error) {
@@ -287,12 +311,12 @@ export async function loadHostedReviewTeam(
   ] = await Promise.all([
     supabase
       .from("projects")
-      .select("owner_id")
+      .select("owner_id,screening_mode")
       .eq("id", projectId)
       .maybeSingle(),
     supabase
       .from("reviewers")
-      .select("id,email,role,accepted_at")
+      .select("id,user_id,email,role,accepted_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: true }),
   ]);
@@ -307,16 +331,26 @@ export async function loadHostedReviewTeam(
     return null;
   }
 
+  const project = projectData as {
+    owner_id: string;
+    screening_mode: ScreeningMode;
+  };
+  const reviewerRows = (reviewerData ?? []) as Array<{
+    id: string;
+    user_id: string | null;
+    email: string;
+    role: ReviewerRole;
+    accepted_at: string | null;
+  }>;
+  const currentReviewer = reviewerRows.find(
+    (reviewer) => reviewer.user_id === user.id,
+  );
+
   return {
-    isOwner: (projectData as { owner_id: string }).owner_id === user.id,
-    reviewers: (
-      (reviewerData ?? []) as Array<{
-        id: string;
-        email: string;
-        role: "owner" | "reviewer";
-        accepted_at: string | null;
-      }>
-    ).map((reviewer) => ({
+    isOwner: project.owner_id === user.id,
+    currentRole: currentReviewer?.role ?? "reviewer",
+    screeningMode: project.screening_mode ?? "dual",
+    reviewers: reviewerRows.map((reviewer) => ({
       id: reviewer.id,
       email: reviewer.email,
       role: reviewer.role,
@@ -328,6 +362,7 @@ export async function loadHostedReviewTeam(
 export async function inviteHostedReviewer(
   projectId: string,
   email: string,
+  role: Exclude<ReviewerRole, "owner">,
 ): Promise<HostedReviewer> {
   const supabase = getSupabaseBrowserClient();
   const user = await getHostedUser();
@@ -349,7 +384,7 @@ export async function inviteHostedReviewer(
     .insert({
       project_id: projectId,
       email: normalizedEmail,
-      role: "reviewer",
+      role,
     })
     .select("id,email,role,accepted_at")
     .single();
@@ -358,8 +393,11 @@ export async function inviteHostedReviewer(
     if (error.code === "23505") {
       throw new Error("That reviewer is already invited.");
     }
-    if (error.message.includes("at most two reviewers")) {
-      throw new Error("This project already has its co-reviewer.");
+    if (error.message.includes("review team is full")) {
+      throw new Error("Every role for this review workflow is already filled.");
+    }
+    if (error.message.includes("does not support")) {
+      throw new Error(error.message);
     }
     throw new Error(error.message);
   }
@@ -367,7 +405,7 @@ export async function inviteHostedReviewer(
   const reviewer = data as {
     id: string;
     email: string;
-    role: "owner" | "reviewer";
+    role: ReviewerRole;
     accepted_at: string | null;
   };
 
@@ -377,6 +415,107 @@ export async function inviteHostedReviewer(
     role: reviewer.role,
     status: reviewer.accepted_at ? "active" : "pending",
   };
+}
+
+export async function removeHostedReviewer(
+  projectId: string,
+  reviewerId: string,
+): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const user = await getHostedUser();
+
+  if (!supabase || !user) {
+    throw new Error("Sign in to manage the review team.");
+  }
+
+  const { error } = await supabase
+    .from("reviewers")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("id", reviewerId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function loadHostedReviewerDecisions(
+  projectId: string,
+): Promise<HostedReviewerDecision[] | null> {
+  const supabase = getSupabaseBrowserClient();
+  const user = await getHostedUser();
+
+  if (!supabase || !user) {
+    return null;
+  }
+
+  const [
+    { data: reviewerData, error: reviewerError },
+    { data: citationData, error: citationError },
+  ] = await Promise.all([
+    supabase
+      .from("reviewers")
+      .select("id,email,role")
+      .eq("project_id", projectId)
+      .in("role", ["owner", "reviewer"]),
+    supabase.from("citations").select("id").eq("project_id", projectId),
+  ]);
+
+  if (reviewerError) {
+    throw new Error(reviewerError.message);
+  }
+  if (citationError) {
+    throw new Error(citationError.message);
+  }
+
+  const reviewers = (reviewerData ?? []) as Array<{
+    id: string;
+    email: string;
+    role: "owner" | "reviewer";
+  }>;
+  const citationIds = ((citationData ?? []) as Array<{ id: string }>).map(
+    (citation) => citation.id,
+  );
+
+  if (!reviewers.length || !citationIds.length) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("decisions")
+    .select("citation_id,reviewer_id,verdict,reason,updated_at")
+    .in(
+      "reviewer_id",
+      reviewers.map((reviewer) => reviewer.id),
+    )
+    .in("citation_id", citationIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const reviewerById = new Map(
+    reviewers.map((reviewer) => [reviewer.id, reviewer]),
+  );
+
+  return ((data ?? []) as Required<DecisionRow>[]).flatMap((decision) => {
+    const reviewer = reviewerById.get(decision.reviewer_id);
+    if (!reviewer) {
+      return [];
+    }
+
+    return [
+      {
+        citationId: decision.citation_id,
+        reviewerId: decision.reviewer_id,
+        reviewerEmail: reviewer.email,
+        reviewerRole: reviewer.role,
+        verdict: decision.verdict,
+        reason: decision.reason,
+        decidedAt: decision.updated_at,
+      },
+    ];
+  });
 }
 
 export async function persistHostedProject(
@@ -390,18 +529,21 @@ export async function persistHostedProject(
     return false;
   }
 
-  const { error: projectError } = await supabase
-    .from("projects")
-    .update({
-      title: project.title,
-      research_question: project.researchQuestion,
-      inclusion_criteria: project.inclusionCriteria,
-      exclusion_criteria: project.exclusionCriteria,
-    })
-    .eq("id", project.id);
+  if (projectMetadataChanged(project, previousProject)) {
+    const { error: projectError } = await supabase
+      .from("projects")
+      .update({
+        title: project.title,
+        research_question: project.researchQuestion,
+        inclusion_criteria: project.inclusionCriteria,
+        exclusion_criteria: project.exclusionCriteria,
+        screening_mode: project.screeningMode,
+      })
+      .eq("id", project.id);
 
-  if (projectError) {
-    throw new Error(projectError.message);
+    if (projectError) {
+      throw new Error(projectError.message);
+    }
   }
 
   if (citationSetChanged(project, previousProject)) {
@@ -534,6 +676,20 @@ function citationSetChanged(project: Project, previousProject?: Project) {
         JSON.stringify(citation) !==
         JSON.stringify(previousProject.citations[index]),
     )
+  );
+}
+
+function projectMetadataChanged(
+  project: Project,
+  previousProject?: Project,
+) {
+  return (
+    !previousProject ||
+    project.title !== previousProject.title ||
+    project.researchQuestion !== previousProject.researchQuestion ||
+    project.inclusionCriteria !== previousProject.inclusionCriteria ||
+    project.exclusionCriteria !== previousProject.exclusionCriteria ||
+    project.screeningMode !== previousProject.screeningMode
   );
 }
 
