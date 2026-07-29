@@ -1,0 +1,199 @@
+"use client";
+
+import {
+  ArrowRight,
+  BookOpenCheck,
+  Check,
+  Database,
+  ShieldCheck,
+} from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+function SignInForm() {
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+  const [message, setMessage] = useState("");
+  const supabase = getSupabaseBrowserClient();
+  const supabaseConfigured = Boolean(supabase);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!supabase) {
+      setStatus("error");
+      setMessage("Supabase is not connected yet. Use the local prototype below.");
+      return;
+    }
+
+    setStatus("sending");
+    setMessage("");
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setStatus("error");
+      setMessage(error.message);
+      return;
+    }
+
+    setStatus("sent");
+    setMessage(`Check ${email.trim()} for your Citebench sign-in link.`);
+  }
+
+  const callbackError = searchParams.get("error");
+
+  return (
+    <main className="grid min-h-screen bg-white text-[#17211f] lg:grid-cols-[0.8fr_1.2fr]">
+      <section className="hidden bg-[#171a1f] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-md bg-[#60a5fa] text-[#0f172a]">
+            <BookOpenCheck aria-hidden="true" size={20} />
+          </span>
+          <span className="text-lg font-semibold">Citebench</span>
+        </Link>
+
+        <div className="max-w-md">
+          <p className="text-xs font-semibold uppercase text-[#93c5fd]">
+            Research workflow
+          </p>
+          <h2 className="mt-4 text-4xl font-semibold leading-tight">
+            One clear place for every screening decision.
+          </h2>
+          <div className="mt-8 space-y-4">
+            <Benefit text="Import and deduplicate citation records" />
+            <Benefit text="Screen titles and abstracts consistently" />
+            <Benefit text="Build PRISMA totals from live project data" />
+          </div>
+        </div>
+
+        <p className="text-xs leading-5 text-[#8fa39d]">
+          Built for small systematic and scoping review teams.
+        </p>
+      </section>
+
+      <section className="flex min-h-screen items-center justify-center bg-[#f4f6f8] px-5 py-10 sm:px-8">
+        <div className="w-full max-w-md">
+          <Link href="/" className="mb-10 flex items-center gap-2 lg:hidden">
+            <span className="grid size-9 place-items-center rounded-md bg-[#2563eb] text-white">
+              <BookOpenCheck aria-hidden="true" size={18} />
+            </span>
+            <span className="font-semibold">Citebench</span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-md bg-[#eff6ff] text-[#2563eb]">
+              <ShieldCheck aria-hidden="true" size={19} />
+            </span>
+            <p className="text-xs font-semibold uppercase text-[#1d4ed8]">
+              Secure access
+            </p>
+          </div>
+          <h1 className="mt-5 text-3xl font-semibold sm:text-4xl">
+            Sign in to your workspace
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#66736f]">
+            Enter your email and we&apos;ll send a secure sign-in link. No
+            password to remember.
+          </p>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-7 border border-[#d8e0dd] bg-white p-5 shadow-[0_10px_35px_rgba(23,33,31,0.05)] sm:p-6"
+          >
+          <label className="block text-sm font-medium text-[#26312f]">
+            Email address
+            <input
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              type="email"
+              placeholder="you@example.com"
+              required
+              autoComplete="email"
+              className="mt-2 h-11 w-full rounded-md border border-[#cbd5d1] bg-white px-3.5 text-sm outline-none transition placeholder:text-[#9aa6a2] focus:border-[#3b82f6] focus:ring-4 focus:ring-[#dbeafe]"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={status === "sending" || status === "sent"}
+            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#2563eb] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {status === "sending"
+              ? "Sending..."
+              : status === "sent"
+                ? "Magic link sent"
+                : "Send magic link"}
+            {status === "sent" ? (
+              <Check aria-hidden="true" size={16} />
+            ) : (
+              <ArrowRight aria-hidden="true" size={16} />
+            )}
+          </button>
+          {message ? (
+            <p
+              className={`rounded-md px-3 py-2 text-sm font-medium ${
+                status === "sent"
+                  ? "mt-4 bg-[#e8f5f0] text-[#176157]"
+                  : "mt-4 bg-[#fff4ed] text-[#9a3412]"
+              }`}
+              role="status"
+            >
+              {message}
+            </p>
+          ) : null}
+          {callbackError ? (
+            <p
+              className="mt-4 rounded-md bg-[#fff4ed] px-3 py-2 text-sm font-medium text-[#9a3412]"
+              role="alert"
+            >
+              That sign-in link could not be completed. Please request a new one.
+            </p>
+          ) : null}
+          <Link
+            href="/app"
+            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md border border-[#cbd5d1] bg-white px-5 text-sm font-semibold text-[#26322f] transition hover:border-[#9aaba5] hover:bg-[#f8faf9]"
+          >
+            <Database aria-hidden="true" size={16} />
+            Continue with local prototype
+          </Link>
+          </form>
+
+          <p className="mt-5 text-center text-xs leading-5 text-[#7a8682]">
+            {supabaseConfigured
+              ? "Secure magic-link access is connected through Supabase."
+              : "Magic-link access will activate when the Supabase project is connected."}
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function Benefit({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-3 text-sm text-[#c6d3cf]">
+      <span className="grid size-6 place-items-center rounded-md bg-white/10 text-[#60a5fa]">
+        <Check aria-hidden="true" size={14} />
+      </span>
+      {text}
+    </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
+  );
+}
