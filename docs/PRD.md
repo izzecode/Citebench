@@ -37,13 +37,16 @@ Completed:
 - Synthetic 12-row acceptance dataset covering duplicates, missing data, clear
   exclusions, and uncertain records.
 - Public source repository at `https://github.com/izzecode/Citebench`.
+- Production deployment at `https://citebench-six.vercel.app`, linked to the
+  GitHub `main` branch.
+- Production Supabase Site URL and authentication callback configured.
 
 Next validation and launch work:
 
 - Run the hosted acceptance test in `docs/HOSTED_ACCEPTANCE_TEST.md`.
 - Co-reviewer invite testing with two real email accounts.
 - PRISMA PNG export.
-- Production deployment and launch policies.
+- Privacy, terms, monitoring, and launch policies.
 
 ## Summary
 
@@ -466,7 +469,7 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 
 ## Launch Checklist
 
-- [ ] Live production URL works.
+- [x] Live production URL works.
 - [x] Magic-link sign-in works.
 - [x] Sample CSV is available.
 - [ ] Privacy notice and terms are linked.

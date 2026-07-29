@@ -10,7 +10,8 @@ from project creation through screening, final decisions, and export.
 
 ## Preconditions
 
-- The local app is running at `http://localhost:3000`.
+- The production app is available at `https://citebench-six.vercel.app`.
+- For local testing, the app may instead run at `http://localhost:3000`.
 - Supabase environment variables are present in `.env.local`.
 - All migrations in `supabase/migrations` have been applied.
 - `http://localhost:3000/auth/callback` is an allowed Auth redirect URL.

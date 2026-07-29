@@ -5,6 +5,8 @@ scoping reviews. It helps small review teams clean citation exports, make
 consistent decisions, resolve disagreements, and produce traceable review
 outputs.
 
+Production: `https://citebench-six.vercel.app`
+
 ## Current Status
 
 This repository contains a working local prototype and an authenticated Supabase
@@ -24,10 +26,11 @@ data path:
 - Automatic browser-storage fallback while signed out.
 - Responsive cobalt interface with semantic success states.
 - Public source repository at `https://github.com/izzecode/Citebench`.
+- Production deployment at `https://citebench-six.vercel.app`.
 - Build-ready PRD, sample project, and hosted acceptance test in `docs/`.
 
 The next milestone is the multi-account hosted acceptance test, followed by
-PRISMA PNG export and production deployment.
+PRISMA PNG export and launch hardening.
 
 ## Local Development
 
