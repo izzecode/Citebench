@@ -2,6 +2,7 @@
 
 import {
   ArrowLeft,
+  Download,
   FileSpreadsheet,
   FileUp,
   Sparkles,
@@ -190,8 +191,16 @@ export default function ImportPage() {
               className={secondaryButtonClass}
             >
               <Sparkles aria-hidden="true" size={16} />
-              Use sample CSV
+              Use sample dataset
             </button>
+            <a
+              href="/citebench-sample-citations.csv"
+              download
+              className={secondaryButtonClass}
+            >
+              <Download aria-hidden="true" size={16} />
+              Download CSV
+            </a>
           </div>
           </div>
         </div>

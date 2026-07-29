@@ -18,7 +18,7 @@ data path:
 - Automatic browser-storage fallback while signed out.
 - Responsive cobalt interface with semantic success states.
 - Public source repository at `https://github.com/izzecode/Citebench`.
-- Build-ready PRD and hosted acceptance test in `docs/`.
+- Build-ready PRD, sample project, and hosted acceptance test in `docs/`.
 
 The next milestone is the end-to-end hosted acceptance test, followed by
 two-reviewer invitation and conflict validation.
@@ -35,6 +35,12 @@ Then open:
 
 ```text
 http://localhost:3000
+```
+
+The synthetic acceptance dataset is available at:
+
+```text
+http://localhost:3000/citebench-sample-citations.csv
 ```
 
 The app includes a signed-out local demo that stores data in the browser. When

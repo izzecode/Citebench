@@ -23,6 +23,8 @@ Completed:
   final decisions.
 - Responsive cobalt visual system with teal reserved for success and completion
   states.
+- Synthetic 12-row acceptance dataset covering duplicates, missing data, clear
+  exclusions, and uncertain records.
 - Public source repository at `https://github.com/izzecode/Citebench`.
 
 Next validation and launch work:

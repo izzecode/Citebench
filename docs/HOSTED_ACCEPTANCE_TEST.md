@@ -32,9 +32,9 @@ Use these values:
 1. Create the test project and confirm the import screen opens.
 2. Select `Use sample CSV`, then import the records.
 3. Confirm the import result contains:
-   - 5 source rows.
-   - 3 unique citations.
-   - 1 duplicate citation.
+   - 12 source rows.
+   - 9 unique citations.
+   - 2 duplicate citations.
    - 1 dropped row with a missing title.
 4. Screen the first citation as `Include`.
 5. Screen the second citation as `Maybe` with `Unclear from abstract`.
@@ -66,8 +66,8 @@ group by p.id, p.title;
 
 Expected result after the workflow:
 
-- `citation_rows`: 4
-- `unique_citations`: 3
+- `citation_rows`: 11
+- `unique_citations`: 9
 - `reviewer_decisions`: 2
 - `final_decisions`: 1
 

@@ -71,11 +71,18 @@ export type ProjectStats = {
 const STORAGE_KEY = "citebench.projects.v1";
 
 export const sampleCsv = `Title,Abstract,Authors,Year,Journal,DOI,Source
-"Telehealth follow-up after stroke","A scoping review of telehealth models used after stroke discharge.","A Khan; M Lee",2023,"Journal of Rehabilitation","10.1000/stroke-telehealth",PubMed
-"Community screening uptake in primary care","Trial of reminders to increase screening uptake in community clinics.","J Patel; R Smith",2021,"Primary Care Research","10.1000/community-screening",Scopus
-"Aspirin use after stroke","Observational study of aspirin adherence after ischemic stroke.","L Jones; B Chen",2020,"Stroke Care","10.1000/aspirin-stroke",PubMed
-"Aspirin use after stroke","Duplicate title row from another database.","L Jones; B Chen",2020,"Stroke Care","",Scopus
-,"This row has no title and should be dropped.",,,,"",Generic`;
+"Telehealth follow-up after stroke","Prospective evaluation of a nurse-led virtual follow-up pathway for adults discharged after stroke.","A Khan; M Lee",2024,"Journal of Stroke Rehabilitation","10.5555/cb.2024.001",PubMed
+"Video-based rehabilitation coaching for stroke survivors","Randomized trial of weekly video coaching to support home rehabilitation after stroke.","J Patel; R Smith",2023,"Digital Rehabilitation","10.5555/cb.2023.002",Scopus
+"Telephone medication support after ischemic stroke","Telephone follow-up improved medication adherence during the first 90 days after discharge.","L Jones; B Chen",2022,"Stroke Care","10.5555/cb.2022.003",PubMed
+"Remote blood pressure monitoring after stroke","Cohort study of connected blood pressure monitoring for secondary stroke prevention.","D Okafor; S Green",2024,"Journal of Vascular Care","10.5555/cb.2024.004",Embase
+"Caregiver experiences of virtual post-stroke clinics","Qualitative interviews explored caregiver experiences of virtual follow-up appointments.","R Mensah; T Wilson",2021,"Patient Experience Journal","10.5555/cb.2021.005",Scopus
+"Telestroke thrombolysis in rural emergency departments","Evaluation of specialist video consultation during emergency thrombolysis decisions.","P Adams; C Wright",2020,"Emergency Stroke Medicine","10.5555/cb.2020.006",PubMed
+"Mobile physiotherapy after knee arthroplasty","Mobile exercise coaching after elective knee replacement surgery.","N Brown; E Davis",2023,"Orthopaedic Digital Health","10.5555/cb.2023.007",Embase
+"Protocol for a virtual stroke follow-up trial","Protocol for a future randomized trial of virtual follow-up after stroke discharge.","F Martin; G Clark",2025,"Trials","10.5555/cb.2025.008",Scopus
+"Community portal for long-term stroke recovery","","I Ahmed; K Thomas",2022,"Community Neurology","10.5555/cb.2022.009",PubMed
+"Virtual follow-up after stroke discharge","Duplicate database record for the nurse-led virtual follow-up pathway.","A Khan; M Lee",2024,"Journal of Stroke Rehabilitation","10.5555/cb.2024.001",Scopus
+"Video-based rehabilitation coaching for stroke survivors","Duplicate title exported without a DOI.","J Patel; R Smith",2023,"Digital Rehabilitation","",Generic
+,"This malformed row has no title and should be dropped.","Unknown",2021,"Unknown Journal","",Generic`;
 
 const fieldAliases: Record<keyof Omit<Citation, "id" | "duplicateOf" | "droppedReason">, string[]> = {
   title: ["title", "article title", "publication title", "record title"],
