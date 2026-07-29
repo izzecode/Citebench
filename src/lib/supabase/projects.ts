@@ -217,34 +217,45 @@ export async function createHostedProject(
   input: ProjectInput,
 ): Promise<Project | null> {
   const supabase = getSupabaseBrowserClient();
-  const user = await getHostedUser();
 
-  if (!supabase || !user) {
+  if (!supabase) {
+    return null;
+  }
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw new Error(sessionError.message);
+  }
+  if (!session) {
     return null;
   }
 
   const project = createProject(input);
-  const { data, error } = await supabase
-    .from("projects")
-    .insert({
-      id: project.id,
-      owner_id: user.id,
-      title: project.title,
-      research_question: project.researchQuestion,
-      inclusion_criteria: project.inclusionCriteria,
-      exclusion_criteria: project.exclusionCriteria,
-    })
-    .select("created_at,updated_at")
-    .single();
+  const { data, error } = await supabase.rpc("create_project", {
+    p_id: project.id,
+    p_title: project.title,
+    p_research_question: project.researchQuestion,
+    p_inclusion_criteria: project.inclusionCriteria,
+    p_exclusion_criteria: project.exclusionCriteria,
+  });
 
   if (error) {
+    if (error.code === "42501") {
+      throw new Error("Your session expired. Sign in again and retry.");
+    }
     throw new Error(error.message);
   }
 
+  const row = data as ProjectRow;
+
   return {
     ...project,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 

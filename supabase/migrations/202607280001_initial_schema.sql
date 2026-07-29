@@ -308,6 +308,47 @@ begin
 end;
 $$;
 
+create or replace function public.create_project(
+  p_id uuid,
+  p_title text,
+  p_research_question text default '',
+  p_inclusion_criteria text default '',
+  p_exclusion_criteria text default ''
+)
+returns public.projects
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  created_project public.projects;
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication required' using errcode = '42501';
+  end if;
+
+  insert into public.projects (
+    id,
+    owner_id,
+    title,
+    research_question,
+    inclusion_criteria,
+    exclusion_criteria
+  )
+  values (
+    p_id,
+    auth.uid(),
+    p_title,
+    p_research_question,
+    p_inclusion_criteria,
+    p_exclusion_criteria
+  )
+  returning * into created_project;
+
+  return created_project;
+end;
+$$;
+
 revoke all on function public.set_updated_at() from public;
 revoke all on function public.add_project_owner_reviewer() from public;
 revoke all on function public.enforce_two_reviewers() from public;
@@ -318,6 +359,8 @@ revoke all on function public.can_access_citation(uuid) from public;
 revoke all on function public.can_decide_citation(uuid, uuid) from public;
 revoke all on function public.is_citation_project_owner(uuid) from public;
 revoke all on function public.accept_pending_invites() from public;
+revoke all on function public.create_project(uuid, text, text, text, text) from public;
+revoke all on function public.create_project(uuid, text, text, text, text) from anon;
 
 grant execute on function public.is_project_owner(uuid) to authenticated;
 grant execute on function public.is_project_member(uuid) to authenticated;
@@ -325,6 +368,8 @@ grant execute on function public.can_access_citation(uuid) to authenticated;
 grant execute on function public.can_decide_citation(uuid, uuid) to authenticated;
 grant execute on function public.is_citation_project_owner(uuid) to authenticated;
 grant execute on function public.accept_pending_invites() to authenticated;
+grant execute on function public.create_project(uuid, text, text, text, text)
+  to authenticated;
 
 grant select, insert, update, delete on public.projects to authenticated;
 grant select, insert, update, delete on public.reviewers to authenticated;

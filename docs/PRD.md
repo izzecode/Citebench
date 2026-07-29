@@ -21,6 +21,8 @@ Completed:
   users can continue with the browser prototype.
 - Hosted project creation/list/view, citation import, reviewer decisions, and
   final decisions.
+- Authenticated project creation derives ownership from the Supabase session
+  inside the database, preventing client/RLS identity mismatches.
 - Responsive cobalt visual system with teal reserved for success and completion
   states.
 - Synthetic 12-row acceptance dataset covering duplicates, missing data, clear

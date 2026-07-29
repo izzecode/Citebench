@@ -12,7 +12,7 @@ from project creation through screening, final decisions, and export.
 
 - The local app is running at `http://localhost:3000`.
 - Supabase environment variables are present in `.env.local`.
-- The initial schema migration has been applied.
+- All migrations in `supabase/migrations` have been applied.
 - `http://localhost:3000/auth/callback` is an allowed Auth redirect URL.
 - The tester has completed magic-link sign-in in the browser used for the test.
 - The app sidebar shows the signed-in email and the project list says
@@ -30,7 +30,7 @@ Use these values:
 ## Workflow
 
 1. Create the test project and confirm the import screen opens.
-2. Select `Use sample CSV`, then import the records.
+2. Select `Use sample dataset`, then import the records.
 3. Confirm the import result contains:
    - 12 source rows.
    - 9 unique citations.
