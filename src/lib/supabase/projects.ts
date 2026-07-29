@@ -57,6 +57,12 @@ export type HostedReviewer = {
   status: "active" | "pending";
 };
 
+export type HostedReviewerInvite = {
+  reviewer: HostedReviewer;
+  emailSent: boolean;
+  emailError?: string;
+};
+
 export type HostedReviewTeam = {
   isOwner: boolean;
   currentRole: ReviewerRole;
@@ -363,7 +369,7 @@ export async function inviteHostedReviewer(
   projectId: string,
   email: string,
   role: Exclude<ReviewerRole, "owner">,
-): Promise<HostedReviewer> {
+): Promise<HostedReviewerInvite> {
   const supabase = getSupabaseBrowserClient();
   const user = await getHostedUser();
 
@@ -409,12 +415,65 @@ export async function inviteHostedReviewer(
     accepted_at: string | null;
   };
 
-  return {
+  const hostedReviewer: HostedReviewer & {
+    role: Exclude<ReviewerRole, "owner">;
+  } = {
     id: reviewer.id,
     email: reviewer.email,
-    role: reviewer.role,
+    role,
     status: reviewer.accepted_at ? "active" : "pending",
   };
+
+  try {
+    await sendHostedReviewerInvite(projectId, hostedReviewer);
+    return { reviewer: hostedReviewer, emailSent: true };
+  } catch (emailError) {
+    return {
+      reviewer: hostedReviewer,
+      emailSent: false,
+      emailError:
+        emailError instanceof Error
+          ? emailError.message
+          : "The invitation email could not be sent.",
+    };
+  }
+}
+
+export async function sendHostedReviewerInvite(
+  projectId: string,
+  reviewer: Pick<HostedReviewer, "email"> & {
+    role: Exclude<ReviewerRole, "owner">;
+  },
+): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const user = await getHostedUser();
+
+  if (!supabase || !user) {
+    throw new Error("Sign in to email an invitation.");
+  }
+
+  const callbackUrl = buildReviewerCallbackUrl(projectId, reviewer.role);
+  const { error } = await supabase.auth.signInWithOtp({
+    email: reviewer.email,
+    options: {
+      emailRedirectTo: callbackUrl,
+      shouldCreateUser: true,
+      data: {
+        citebench_invitation: true,
+        citebench_project_id: projectId,
+        citebench_role: reviewer.role,
+      },
+    },
+  });
+
+  if (error) {
+    if (error.message.toLowerCase().includes("not authorized")) {
+      throw new Error(
+        "External email delivery needs custom SMTP. The invitation link is ready, but the collaborator will still need email delivery working to sign in.",
+      );
+    }
+    throw new Error(error.message);
+  }
 }
 
 export async function removeHostedReviewer(
@@ -691,6 +750,23 @@ function projectMetadataChanged(
     project.exclusionCriteria !== previousProject.exclusionCriteria ||
     project.screeningMode !== previousProject.screeningMode
   );
+}
+
+function buildReviewerCallbackUrl(
+  projectId: string,
+  role: Exclude<ReviewerRole, "owner">,
+) {
+  if (typeof window === "undefined") {
+    throw new Error("Invitation emails can only be sent from the app.");
+  }
+
+  const next =
+    role === "adjudicator"
+      ? `/app/projects/${projectId}/conflicts`
+      : `/app/projects/${projectId}/screen`;
+  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  callbackUrl.searchParams.set("next", next);
+  return callbackUrl.toString();
 }
 
 function citationInsert(projectId: string, citation: Citation) {

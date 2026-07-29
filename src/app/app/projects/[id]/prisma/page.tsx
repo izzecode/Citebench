@@ -3,6 +3,7 @@
 import { ArrowLeft, Waypoints } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   AppChrome,
   EmptyState,
@@ -13,11 +14,47 @@ import {
   calculateStats,
   getScreenableCitations,
 } from "@/lib/citebench";
+import {
+  calculateFullTextStats,
+  getFullTextEligibleCitations,
+  loadHostedFullTextWorkspace,
+  type FullTextStats,
+} from "@/lib/supabase/full-text";
 import { useLocalProject } from "@/lib/use-local-project";
 
 export default function PrismaPage() {
   const params = useParams<{ id: string }>();
-  const { project, loaded } = useLocalProject(params.id);
+  const { project, loaded, storageMode } = useLocalProject(params.id);
+  const [fullTextStats, setFullTextStats] = useState<FullTextStats | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!project || storageMode !== "hosted") {
+      return;
+    }
+
+    let cancelled = false;
+
+    void Promise.all([
+      getFullTextEligibleCitations(project),
+      loadHostedFullTextWorkspace(project.id),
+    ])
+      .then(([eligible, workspace]) => {
+        if (!cancelled && workspace) {
+          setFullTextStats(calculateFullTextStats(project, eligible, workspace));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFullTextStats(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project, storageMode]);
 
   if (loaded && !project) {
     return (
@@ -44,11 +81,16 @@ export default function PrismaPage() {
   const excluded = Object.values(project.decisions).filter(
     (decision) => decision.verdict === "exclude",
   ).length;
-  const included =
+  const titleIncluded =
     Object.values(project.finalDecisions).filter(
       (decision) => decision.verdict === "include",
     ).length || stats.included;
   const awaiting = citations.length - stats.screened;
+  const reportsSought = fullTextStats?.eligible ?? titleIncluded;
+  const reportsNotRetrieved = fullTextStats?.notRetrieved ?? reportsSought;
+  const reportsAssessed = fullTextStats?.documents ?? 0;
+  const fullTextsExcluded = fullTextStats?.excluded ?? 0;
+  const studiesIncluded = fullTextStats?.included ?? 0;
 
   return (
     <AppChrome>
@@ -79,24 +121,44 @@ export default function PrismaPage() {
 
       <section className="mt-7 overflow-auto border border-[#d8e0dd] bg-white p-5 shadow-[0_8px_30px_rgba(23,33,31,0.04)]">
         <svg
-          viewBox="0 0 760 720"
+          viewBox="0 0 800 900"
           role="img"
           aria-label="PRISMA flow diagram"
           className="mx-auto min-w-[720px] max-w-4xl"
         >
-          <PrismaBox x={230} y={20} title="Records identified" value={stats.totalCitations} />
-          <Arrow x1={380} y1={100} x2={380} y2={140} />
-          <PrismaBox x={230} y={140} title="Duplicates removed" value={stats.duplicates} />
-          <Arrow x1={380} y1={220} x2={380} y2={260} />
-          <PrismaBox x={230} y={260} title="Records screened" value={stats.uniqueCitations} />
-          <Arrow x1={530} y1={315} x2={610} y2={315} />
-          <PrismaBox x={610} y={260} title="Records excluded" value={excluded} small />
-          <Arrow x1={380} y1={340} x2={380} y2={380} />
-          <PrismaBox x={230} y={380} title="Awaiting decision" value={awaiting} />
-          <Arrow x1={380} y1={460} x2={380} y2={500} />
-          <PrismaBox x={230} y={500} title="Records included" value={included} />
-          <text x="380" y="655" textAnchor="middle" className="fill-[#78847f] text-sm">
-            Generated locally from Citebench screening data
+          <PrismaBox x={250} y={20} title="Records identified" value={stats.totalCitations} />
+          <Arrow x1={400} y1={100} x2={400} y2={140} />
+          <PrismaBox x={250} y={140} title="Duplicates removed" value={stats.duplicates} />
+          <Arrow x1={400} y1={220} x2={400} y2={260} />
+          <PrismaBox x={250} y={260} title="Records screened" value={stats.uniqueCitations} />
+          <Arrow x1={550} y1={300} x2={630} y2={300} />
+          <PrismaBox x={630} y={260} title="Records excluded" value={excluded} small />
+          <Arrow x1={400} y1={340} x2={400} y2={380} />
+          <PrismaBox x={250} y={380} title="Reports sought for retrieval" value={reportsSought} />
+          <Arrow x1={550} y1={420} x2={630} y2={420} />
+          <PrismaBox
+            x={630}
+            y={380}
+            title="Reports not retrieved"
+            value={reportsNotRetrieved}
+            small
+          />
+          <Arrow x1={400} y1={460} x2={400} y2={500} />
+          <PrismaBox x={250} y={500} title="Reports assessed for eligibility" value={reportsAssessed} />
+          <Arrow x1={550} y1={540} x2={630} y2={540} />
+          <PrismaBox
+            x={630}
+            y={500}
+            title="Full texts excluded"
+            value={fullTextsExcluded}
+            small
+          />
+          <Arrow x1={400} y1={580} x2={400} y2={620} />
+          <PrismaBox x={250} y={620} title="Studies included" value={studiesIncluded} />
+          <text x="400" y="790" textAnchor="middle" className="fill-[#78847f] text-sm">
+            {awaiting
+              ? `${awaiting} title and abstract decisions are still pending`
+              : "Generated from Citebench title, abstract, and full-text decisions"}
           </text>
         </svg>
       </section>

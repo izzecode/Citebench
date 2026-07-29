@@ -18,6 +18,7 @@ import {
   inviteHostedReviewer,
   loadHostedReviewTeam,
   removeHostedReviewer,
+  sendHostedReviewerInvite,
   type HostedReviewer,
   type HostedReviewTeam,
 } from "@/lib/supabase/projects";
@@ -39,6 +40,7 @@ export function ReviewTeamPanel({
   const [email, setEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<InviteRole>("reviewer");
   const [copiedReviewerId, setCopiedReviewerId] = useState("");
+  const [emailingReviewerId, setEmailingReviewerId] = useState("");
   const [removingReviewerId, setRemovingReviewerId] = useState("");
   const [updatingMode, setUpdatingMode] = useState(false);
   const [status, setStatus] = useState<
@@ -90,11 +92,12 @@ export function ReviewTeamPanel({
     setCopiedReviewerId("");
 
     try {
-      const reviewer = await inviteHostedReviewer(
+      const invitation = await inviteHostedReviewer(
         projectId,
         email,
         selectedRole,
       );
+      const { reviewer } = invitation;
       setTeam((current) =>
         current
           ? { ...current, reviewers: [...current.reviewers, reviewer] }
@@ -103,7 +106,9 @@ export function ReviewTeamPanel({
       setEmail("");
       setStatus("invited");
       setMessage(
-        `Invitation created for ${reviewer.email}. Copy the ${roleLabel(reviewer.role).toLowerCase()} link and send it to them.`,
+        invitation.emailSent
+          ? `Invitation emailed to ${reviewer.email}. The copyable link remains available below.`
+          : `Invitation created for ${reviewer.email}. ${invitation.emailError ?? "Copy the invitation link and send it to them."}`,
       );
     } catch (error) {
       setStatus("error");
@@ -112,6 +117,33 @@ export function ReviewTeamPanel({
           ? error.message
           : "The team member could not be invited.",
       );
+    }
+  }
+
+  async function emailInvite(reviewer: HostedReviewer) {
+    if (reviewer.role === "owner") {
+      return;
+    }
+
+    setEmailingReviewerId(reviewer.id);
+    setMessage("");
+
+    try {
+      await sendHostedReviewerInvite(projectId, {
+        email: reviewer.email,
+        role: reviewer.role,
+      });
+      setStatus("invited");
+      setMessage(`Invitation emailed to ${reviewer.email}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The invitation email could not be sent.",
+      );
+    } finally {
+      setEmailingReviewerId("");
     }
   }
 
@@ -301,7 +333,7 @@ export function ReviewTeamPanel({
               </div>
 
               {team.isOwner && reviewer.status === "pending" ? (
-                <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                   <input
                     readOnly
                     value={inviteUrl}
@@ -309,6 +341,23 @@ export function ReviewTeamPanel({
                     className="h-10 min-w-0 rounded-md border border-[#cbd5d1] bg-[#fafcfb] px-3 text-xs text-[#52605c] outline-none"
                     onFocus={(event) => event.currentTarget.select()}
                   />
+                  <button
+                    type="button"
+                    disabled={emailingReviewerId === reviewer.id}
+                    onClick={() => emailInvite(reviewer)}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#9bb7df] bg-[#eff6ff] px-4 text-sm font-semibold text-[#1d4ed8] transition hover:bg-[#dbeafe] disabled:opacity-60"
+                  >
+                    {emailingReviewerId === reviewer.id ? (
+                      <LoaderCircle
+                        aria-hidden="true"
+                        className="animate-spin"
+                        size={16}
+                      />
+                    ) : (
+                      <Mail aria-hidden="true" size={16} />
+                    )}
+                    Email invite
+                  </button>
                   <button
                     type="button"
                     onClick={() => copyInviteLink(reviewer)}

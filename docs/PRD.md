@@ -1,6 +1,6 @@
 # Citebench PRD
 
-Status: v1 build spec  
+Status: v1 shipped; v2 implementation in progress
 Owner: Olumide Elijah Sorinola  
 Last updated: 2026-07-29
 
@@ -40,9 +40,16 @@ Completed:
 - Production deployment at `https://citebench-six.vercel.app`, linked to the
   GitHub `main` branch.
 - Production Supabase Site URL and authentication callback configured.
+- Automatic collaborator invitation attempts with resend controls and a
+  copyable-link fallback.
+- Private full-text PDF storage, reviewer Include/Exclude decisions, standard
+  exclusion reasons, notes, conflict resolution, and signed document access.
+- Full-text PRISMA counts and combined title/abstract plus full-text CSV export.
 
 Next validation and launch work:
 
+- Configure custom production SMTP and a verified sending domain so external
+  invitation and sign-in emails can be delivered.
 - Run the hosted acceptance test in `docs/HOSTED_ACCEPTANCE_TEST.md`.
 - Co-reviewer invite testing with two real email accounts.
 - PRISMA PNG export.
@@ -53,6 +60,9 @@ Next validation and launch work:
 Citebench is a lightweight web app for early-career researchers running systematic or scoping reviews. It helps a small review team move from an exported citation CSV to title/abstract screening, conflict resolution, a screened dataset, and a PRISMA-style flow diagram without relying on spreadsheets or heavyweight institutional software.
 
 The v1 product is intentionally narrow: one project owner, up to two independent screeners, one optional adjudicator, title/abstract screening only, CSV import, conflict resolution, and export.
+
+V2 extends the same review team into full-text screening without turning
+Citebench into a reference manager or data-extraction suite.
 
 ## Target Users
 
@@ -100,6 +110,33 @@ Citebench is not a full replacement for Covidence, Rayyan, DistillerSR, Zotero, 
 - Custom PRISMA templates.
 - Mobile-first optimization.
 - Multi-language support.
+
+## V2 Scope
+
+The first V2 release supports:
+
+- A full-text queue derived from citations included after title/abstract
+  screening.
+- Private PDF upload and replacement in Supabase Storage.
+- Time-limited signed PDF links for authorized project members.
+- Independent Include/Exclude full-text decisions from primary reviewers.
+- A required standard exclusion reason for full-text exclusions.
+- Optional reviewer notes.
+- Automatic disagreement detection.
+- Final Include/Exclude resolution with a required rationale by the owner or
+  assigned adjudicator.
+- Full-text stages in the PRISMA view.
+- A combined audit CSV containing title/abstract and full-text decisions.
+
+Deferred beyond the first V2 release:
+
+- Automated PDF retrieval from DOI or publisher links.
+- In-browser PDF annotation and highlighting.
+- Risk-of-bias forms.
+- Structured data extraction and meta-analysis.
+- Custom exclusion-reason taxonomies.
+- Multiple documents or appendices per citation.
+- Larger review panels and majority voting.
 
 ## Product Decisions
 
@@ -198,17 +235,19 @@ Rows without a usable title are dropped and counted with a reason.
 
 ### Invite Flow
 
-V1 invite flow:
+Hosted invite flow:
 
 1. Project owner chooses a workflow and enters the email for an available role.
 2. App creates a pending reviewer or adjudicator record.
-3. Owner copies and sends the role-specific invitation link.
-4. Invitee opens the link and requests a Supabase magic link using the invited
-   email.
+3. App sends a role-specific Supabase magic link to the invited email.
+4. If delivery fails, the pending role is preserved and the owner can retry or
+   copy the invitation link.
 5. If the signed-in email matches the pending record, the invite is accepted.
 6. Reviewers are sent to screening; adjudicators are sent to resolution.
 
-Custom invite tokens are deferred unless Supabase magic-link matching proves insufficient.
+Production external delivery requires custom SMTP and a verified sender
+configured in Supabase. Custom invite tokens are deferred unless Supabase
+magic-link matching proves insufficient.
 
 ## Core Screens
 
@@ -321,6 +360,9 @@ CSV export includes:
 - Reviewer reasons.
 - Final decision.
 - Final rationale.
+- Full-text document filename.
+- Full-text reviewer verdicts, reasons, and notes.
+- Full-text final verdict and rationale.
 
 ## Data Model
 
@@ -384,6 +426,37 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - `created_at timestamptz not null default now()`
 - Unique constraint: `(citation_id)`
 
+### full_text_documents
+
+- `id uuid primary key`
+- `citation_id uuid not null unique references citations(id)`
+- `storage_path text not null`
+- `file_name text not null`
+- `size_bytes bigint not null`
+- `uploaded_by uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+
+### full_text_decisions
+
+- `id uuid primary key`
+- `citation_id uuid not null references citations(id)`
+- `reviewer_id uuid not null references reviewers(id)`
+- `verdict text not null check verdict in ('include', 'exclude')`
+- `exclusion_reason text`
+- `notes text`
+- `created_at timestamptz not null default now()`
+- Unique constraint: `(citation_id, reviewer_id)`
+
+### full_text_final_decisions
+
+- `id uuid primary key`
+- `citation_id uuid not null unique references citations(id)`
+- `verdict text not null check verdict in ('include', 'exclude')`
+- `exclusion_reason text`
+- `rationale text not null`
+- `decided_by uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+
 ## Security Requirements
 
 - Magic-link authentication only.
@@ -416,6 +489,19 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - PRISMA flow renders from project data.
 - User can export CSV.
 - App is deployed publicly.
+
+## V2 Acceptance Criteria
+
+- Included title/abstract citations appear in the full-text queue.
+- Authorized project members can upload, replace, and open a private PDF.
+- Reviewers cannot submit a full-text decision before a PDF is attached.
+- Exclude requires an exclusion reason.
+- Dual-review decisions remain independent and disagreements are surfaced.
+- Only the configured resolver can save the final full-text decision.
+- PRISMA counts distinguish reports sought, not retrieved, assessed, excluded,
+  and included.
+- CSV export contains both screening stages and their audit fields.
+- RLS prevents non-members from reading document metadata or storage objects.
 
 ## Risks
 
@@ -467,11 +553,20 @@ Supabase Auth users are canonical. A local profile table may be added only if ne
 - Add screened dataset CSV export.
 - Polish dashboard and launch pages.
 
+### Phase 6: Full-Text Review — Implemented, Pending Hosted Acceptance
+
+- Create private PDF storage and RLS policies.
+- Add full-text queue and signed document access.
+- Add reviewer decisions, standard exclusion reasons, and notes.
+- Add full-text conflict resolution.
+- Extend PRISMA totals and CSV export.
+
 ## Launch Checklist
 
 - [x] Live production URL works.
 - [x] Magic-link sign-in works.
 - [x] Sample CSV is available.
+- [ ] Custom SMTP and verified sender are configured.
 - [ ] Privacy notice and terms are linked.
 - [x] GitHub repo has a clear README.
 - [ ] README includes screenshots, live URL, and project story.

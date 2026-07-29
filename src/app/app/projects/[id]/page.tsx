@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   ArrowLeft,
+  BookOpenCheck,
   CheckCircle2,
   FileUp,
   Gavel,
@@ -135,7 +136,7 @@ export default function ProjectDashboardPage() {
             <FileUp aria-hidden="true" size={16} />
             Import CSV
           </Link>
-          <ExportDatasetButton project={project} />
+          <ExportDatasetButton project={project} storageMode={storageMode} />
         </div>
       </div>
 
@@ -154,6 +155,12 @@ export default function ProjectDashboardPage() {
           className="px-3 py-3 text-sm font-medium text-[#6a7773] hover:text-[#26322f]"
         >
           Resolution
+        </Link>
+        <Link
+          href={`/app/projects/${project.id}/full-text`}
+          className="px-3 py-3 text-sm font-medium text-[#6a7773] hover:text-[#26322f]"
+        >
+          Full text
         </Link>
         <Link
           href={`/app/projects/${project.id}/prisma`}
@@ -214,13 +221,20 @@ export default function ProjectDashboardPage() {
               <Metric label="Excluded" value={stats.excluded} />
             </div>
           </div>
-          <div className="grid gap-2 border-t border-[#e4e9e7] bg-[#fafcfb] p-4 sm:grid-cols-2">
+          <div className="grid gap-2 border-t border-[#e4e9e7] bg-[#fafcfb] p-4 sm:grid-cols-3">
             <Link
               href={`/app/projects/${project.id}/conflicts`}
               className={secondaryButtonClass}
             >
               <GitCompareArrows aria-hidden="true" size={16} />
               Review decisions
+            </Link>
+            <Link
+              href={`/app/projects/${project.id}/full-text`}
+              className={secondaryButtonClass}
+            >
+              <BookOpenCheck aria-hidden="true" size={16} />
+              Review full text
             </Link>
             <Link
               href={`/app/projects/${project.id}/prisma`}

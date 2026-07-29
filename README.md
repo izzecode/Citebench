@@ -1,9 +1,9 @@
 # Citebench
 
-Citebench is a focused title and abstract screening workspace for systematic and
-scoping reviews. It helps small review teams clean citation exports, make
-consistent decisions, resolve disagreements, and produce traceable review
-outputs.
+Citebench is a focused evidence-screening workspace for systematic and scoping
+reviews. It helps small review teams clean citation exports, screen titles and
+abstracts, review full-text PDFs, resolve disagreements, and produce traceable
+review outputs.
 
 Production: `https://citebench-six.vercel.app`
 
@@ -18,19 +18,23 @@ data path:
 - Magic-link sign-in and callback flow, validated with a real account.
 - Hosted project, citation, reviewer decision, and final-decision persistence.
 - Configurable solo, dual-independent, and dual-with-adjudicator workflows.
-- Copyable role-specific invitations with email-matched acceptance and direct
-  return to screening or conflict resolution.
+- Automatic role-specific invitation emails, resend controls, copyable links,
+  email-matched acceptance, and direct return to the assigned workflow.
 - Automatic cross-reviewer conflict derivation with owner or adjudicator
   resolution.
 - Clear completion actions after a reviewer finishes every citation.
+- Private full-text PDF storage with reviewer decisions, exclusion reasons,
+  adjudication, and signed document links.
+- Full-text PRISMA counts and a combined title/abstract plus full-text CSV
+  export.
 - Automatic browser-storage fallback while signed out.
 - Responsive cobalt interface with semantic success states.
 - Public source repository at `https://github.com/izzecode/Citebench`.
 - Production deployment at `https://citebench-six.vercel.app`.
 - Build-ready PRD, sample project, and hosted acceptance test in `docs/`.
 
-The next milestone is the multi-account hosted acceptance test, followed by
-PRISMA PNG export and launch hardening.
+The next milestone is production SMTP configuration and the multi-account
+hosted acceptance test, followed by PRISMA PNG export and launch hardening.
 
 ## Local Development
 
@@ -100,3 +104,16 @@ Out of scope for v1:
 - Risk of bias assessment.
 - Data extraction.
 - Institution/team workspaces.
+
+The first V2 slice now adds:
+
+- Private PDF upload and replacement for included citations.
+- Independent full-text Include/Exclude decisions.
+- Standard exclusion reasons and reviewer notes.
+- Full-text conflict resolution by the configured resolver.
+- PRISMA full-text counts and combined CSV export.
+
+Production collaborator delivery requires custom SMTP in Supabase. Until that
+is configured, Citebench still creates the pending role and exposes its
+invitation link, but external invitees may not receive either invitation or
+sign-in emails.
