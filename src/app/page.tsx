@@ -37,7 +37,7 @@ const decisions = [
 ];
 
 const boundaries = [
-  "Two reviewers per project",
+  "Flexible review workflows",
   "Title and abstract screening",
   "CSV import and export",
   "PRISMA flow totals",
@@ -111,7 +111,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs text-[#9fb2ac]">
               <span className="flex items-center gap-2">
                 <Check aria-hidden="true" className="text-[#60a5fa]" size={14} />
-                Two-reviewer decision workflow
+                Solo, dual, or adjudicated workflows
               </span>
               <span className="flex items-center gap-2">
                 <Check aria-hidden="true" className="text-[#60a5fa]" size={14} />
