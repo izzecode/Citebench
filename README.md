@@ -32,6 +32,7 @@ data path:
 - Public source repository at `https://github.com/izzecode/Citebench`.
 - Production deployment at `https://citebench-six.vercel.app`.
 - Build-ready PRD, sample project, and hosted acceptance test in `docs/`.
+- Production SMTP setup runbook in `docs/SMTP_SETUP.md`.
 
 The next milestone is production SMTP configuration and the multi-account
 hosted acceptance test, followed by PRISMA PNG export and launch hardening.

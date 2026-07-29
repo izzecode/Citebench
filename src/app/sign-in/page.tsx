@@ -8,11 +8,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function SignInForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedNext = searchParams.get("next");
   const next =
@@ -22,11 +23,45 @@ function SignInForm() {
   const isInvitation = searchParams.get("invite") === "1";
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
-    "idle" | "sending" | "sent" | "error"
+    "idle" | "claiming" | "sending" | "sent" | "error"
   >("idle");
   const [message, setMessage] = useState("");
   const supabase = getSupabaseBrowserClient();
   const supabaseConfigured = Boolean(supabase);
+
+  useEffect(() => {
+    if (!isInvitation || !supabase) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user || cancelled) {
+        return;
+      }
+
+      setStatus("claiming");
+      setMessage("You are already signed in. Connecting your review access...");
+
+      const { error } = await supabase.rpc("accept_pending_invites");
+      if (cancelled) {
+        return;
+      }
+
+      if (error) {
+        setStatus("error");
+        setMessage("Your invitation could not be connected. Sign out and use the invited email address.");
+        return;
+      }
+
+      router.replace(next);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isInvitation, next, router, supabase]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +87,11 @@ function SignInForm() {
 
     if (error) {
       setStatus("error");
-      setMessage(error.message);
+      setMessage(
+        error.message.toLowerCase().includes("rate limit")
+          ? "Email limit reached. Open the newest Citebench link already in your inbox, or wait before requesting another. Reliable team invitations require custom SMTP."
+          : error.message,
+      );
       return;
     }
 
@@ -135,10 +174,16 @@ function SignInForm() {
           </label>
           <button
             type="submit"
-            disabled={status === "sending" || status === "sent"}
+            disabled={
+              status === "claiming" ||
+              status === "sending" ||
+              status === "sent"
+            }
             className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#2563eb] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {status === "sending"
+            {status === "claiming"
+              ? "Opening review..."
+              : status === "sending"
               ? "Sending..."
               : status === "sent"
                 ? "Sign-in link sent"
